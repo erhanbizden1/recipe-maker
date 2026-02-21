@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "recipe-maker",
+    "name": "DishMind",
     "slug": "recipe-maker",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,7 +9,13 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Malzemelerin fotoğrafını çekmek için kamera gerekli.",
+        "NSPhotoLibraryUsageDescription": "Galeriden malzeme fotoğrafı seçmek için gerekli.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.erhanbizden.recipe-maker"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +25,11 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -27,22 +37,31 @@
     },
     "plugins": [
       "expo-router",
+      "expo-camera",
       [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#ff6b2b",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#ff6b2b"
           }
         }
-      ]
+      ],
+      "expo-video",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "85bc722a-9932-4510-b915-246565fbdf23"
+      }
     }
   }
 }
