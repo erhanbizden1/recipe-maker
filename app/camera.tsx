@@ -1,11 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import * as ImagePicker from 'expo-image-picker';
+// import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -43,19 +42,19 @@ export default function CameraScreen() {
     }
   }
 
-  async function handlePickFromGallery() {
-    if (photos.length >= 8) return;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsMultipleSelection: true,
-      quality: 0.72,
-      selectionLimit: 8 - photos.length,
-    });
-    if (!result.canceled) {
-      const uris = result.assets.map((a) => a.uri);
-      setPhotos((prev) => [...prev, ...uris].slice(0, 8));
-    }
-  }
+  // async function handlePickFromGallery() {
+  //   if (photos.length >= 8) return;
+  //   const result = await ImagePicker.launchImageLibraryAsync({
+  //     mediaTypes: ['images'],
+  //     allowsMultipleSelection: true,
+  //     quality: 0.72,
+  //     selectionLimit: 8 - photos.length,
+  //   });
+  //   if (!result.canceled) {
+  //     const uris = result.assets.map((a) => a.uri);
+  //     setPhotos((prev) => [...prev, ...uris].slice(0, 8));
+  //   }
+  // }
 
   function handleSubmit() {
     router.replace({
@@ -93,11 +92,7 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.root}>
-      {photos.length > 0 ? (
-        <Image source={{ uri: photos[0] }} style={StyleSheet.absoluteFill} resizeMode="cover" />
-      ) : (
-        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
-      )}
+      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
       <CameraOverlay />
 
       {/* Close button */}
@@ -125,24 +120,8 @@ export default function CameraScreen() {
         <PhotoStrip photos={photos} onRemove={(uri) => setPhotos((p) => p.filter((x) => x !== uri))} />
 
         <View style={styles.controls}>
-          <TouchableOpacity
-            style={styles.leftSlot}
-            onPress={handlePickFromGallery}
-            disabled={photos.length >= 8}
-            activeOpacity={0.75}>
-            {photos.length > 0 ? (
-              <View style={styles.galleryThumb}>
-                <Image source={{ uri: photos[0] }} style={styles.thumbImg} />
-                <View style={styles.thumbBadge}>
-                  <Text style={styles.thumbBadgeText}>{photos.length}</Text>
-                </View>
-              </View>
-            ) : (
-              <View style={styles.galleryBtn}>
-                <Text style={styles.galleryIcon}>⊞</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          {/* Gallery button disabled */}
+          <View style={styles.leftSlot} />
 
           {/* Shutter */}
           <TouchableOpacity

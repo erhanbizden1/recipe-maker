@@ -76,7 +76,7 @@ export default function HomeScreen() {
               activeOpacity={0.88}>
               <View style={styles.primaryCardInner}>
                 <View style={styles.cardIconWrap}>
-                  <Ionicons name="camera" size={28} color="#fff" />
+                  <Ionicons name="camera" size={IS_TABLET ? 36 : 28} color="#fff" />
                 </View>
                 <View style={styles.cardText}>
                   <Text style={styles.cardTitle}>{t.home.scanTitle}</Text>
@@ -97,7 +97,7 @@ export default function HomeScreen() {
               activeOpacity={0.88}>
               <View style={styles.secondaryCardInner}>
                 <View style={styles.cardIconWrapSecondary}>
-                  <Ionicons name="create" size={24} color={ACCENT} />
+                  <Ionicons name="create" size={IS_TABLET ? 30 : 24} color={ACCENT} />
                 </View>
                 <View style={styles.cardText}>
                   <Text style={styles.cardTitleSecondary}>{t.home.typeTitle}</Text>
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
   },
   tagline: {
-    fontSize: 15,
+    fontSize: IS_TABLET ? 18 : 15,
     color: 'rgba(255,255,255,0.85)',
     lineHeight: 22,
     fontWeight: '500',
@@ -219,13 +219,13 @@ const styles = StyleSheet.create({
   primaryCardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 22,
-    gap: 16,
+    padding: IS_TABLET ? 28 : 22,
+    gap: IS_TABLET ? 20 : 16,
   },
   cardIconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+    width: IS_TABLET ? 64 : 52,
+    height: IS_TABLET ? 64 : 52,
+    borderRadius: IS_TABLET ? 20 : 16,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -236,20 +236,20 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: IS_TABLET ? 22 : 18,
     fontWeight: '700',
     color: '#fff',
     letterSpacing: -0.2,
   },
   cardSub: {
-    fontSize: 13,
+    fontSize: IS_TABLET ? 16 : 13,
     color: 'rgba(255,255,255,0.82)',
-    lineHeight: 18,
+    lineHeight: IS_TABLET ? 22 : 18,
   },
   cardArrow: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: IS_TABLET ? 40 : 32,
+    height: IS_TABLET ? 40 : 32,
+    borderRadius: IS_TABLET ? 20 : 16,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -274,34 +274,34 @@ const styles = StyleSheet.create({
   secondaryCardInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 22,
-    gap: 16,
+    padding: IS_TABLET ? 28 : 22,
+    gap: IS_TABLET ? 20 : 16,
   },
   cardIconWrapSecondary: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+    width: IS_TABLET ? 64 : 52,
+    height: IS_TABLET ? 64 : 52,
+    borderRadius: IS_TABLET ? 20 : 16,
     backgroundColor: 'rgba(255,107,43,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   cardTitleSecondary: {
-    fontSize: 18,
+    fontSize: IS_TABLET ? 22 : 18,
     fontWeight: '700',
     color: '#1C1C1E',
     letterSpacing: -0.2,
   },
   cardSubSecondary: {
-    fontSize: 13,
+    fontSize: IS_TABLET ? 16 : 13,
     color: '#636366',
-    lineHeight: 18,
+    lineHeight: IS_TABLET ? 22 : 18,
     marginTop: 4,
   },
   cardArrowSecondary: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: IS_TABLET ? 40 : 32,
+    height: IS_TABLET ? 40 : 32,
+    borderRadius: IS_TABLET ? 20 : 16,
     backgroundColor: 'rgba(255,107,43,0.25)',
     borderWidth: 1,
     borderColor: 'rgba(255,107,43,0.45)',

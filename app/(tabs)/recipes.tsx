@@ -67,7 +67,7 @@ export default function RecipesScreen() {
       <SafeAreaView style={[styles.emptyRoot, { paddingBottom: bottomPad }]}>
         <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.emptyIcon}>
-          <Text style={{ fontSize: 44 }}>🍽️</Text>
+          <Text style={{ fontSize: IS_TABLET ? 56 : 44 }}>🍽️</Text>
         </View>
         <Text style={styles.emptyTitle}>{t.recipes.noRecipesTitle}</Text>
         <Text style={styles.emptySub}>{t.recipes.noRecipesSub}</Text>
@@ -184,8 +184,8 @@ function createStyles(C: ColorScheme) {
       padding: IS_TABLET ? 80 : 40,
     },
     emptyIcon: {
-      width: 96,
-      height: 96,
+      width: IS_TABLET ? 120 : 96,
+      height: IS_TABLET ? 120 : 96,
       borderRadius: 30,
       backgroundColor: C.surface,
       alignItems: 'center',
@@ -195,24 +195,24 @@ function createStyles(C: ColorScheme) {
       borderColor: C.border,
     },
     emptyTitle: {
-      fontSize: 26,
+      fontSize: IS_TABLET ? 32 : 26,
       fontWeight: '700',
       color: C.text,
       marginBottom: 10,
       textAlign: 'center',
     },
     emptySub: {
-      fontSize: 15,
+      fontSize: IS_TABLET ? 18 : 15,
       color: C.text2,
       textAlign: 'center',
-      lineHeight: 23,
+      lineHeight: IS_TABLET ? 28 : 23,
       marginBottom: 32,
       maxWidth: 420,
     },
     emptyBtn: {
       backgroundColor: C.accent,
-      paddingHorizontal: 32,
-      paddingVertical: 15,
+      paddingHorizontal: IS_TABLET ? 44 : 32,
+      paddingVertical: IS_TABLET ? 19 : 15,
       borderRadius: 30,
       shadowColor: C.accent,
       shadowOffset: { width: 0, height: 6 },
@@ -222,7 +222,7 @@ function createStyles(C: ColorScheme) {
     emptyBtnText: {
       color: C.white,
       fontWeight: '700',
-      fontSize: 16,
+      fontSize: IS_TABLET ? 19 : 16,
     },
     header: {
       flexDirection: 'row',
@@ -262,12 +262,12 @@ function createStyles(C: ColorScheme) {
       fontWeight: '600',
     },
     list: {
-      paddingHorizontal: 16,
+      paddingHorizontal: IS_TABLET ? 24 : 16,
       paddingTop: 12,
       paddingBottom: 32,
     },
     separator: {
-      height: 10,
+      height: IS_TABLET ? 14 : 10,
     },
     card: {
       flexDirection: 'row',
@@ -276,10 +276,10 @@ function createStyles(C: ColorScheme) {
       borderWidth: 1,
       borderColor: C.border,
       overflow: 'hidden',
-      minHeight: 100,
+      minHeight: IS_TABLET ? 130 : 100,
     },
     thumb: {
-      width: 92,
+      width: IS_TABLET ? 130 : 92,
       alignSelf: 'stretch',
     },
     thumbPlaceholder: {
@@ -289,20 +289,20 @@ function createStyles(C: ColorScheme) {
     },
     cardContent: {
       flex: 1,
-      paddingHorizontal: 14,
-      paddingVertical: 14,
+      paddingHorizontal: IS_TABLET ? 18 : 14,
+      paddingVertical: IS_TABLET ? 18 : 14,
       justifyContent: 'space-between',
     },
     recipeName: {
-      fontSize: 15,
+      fontSize: IS_TABLET ? 19 : 15,
       fontWeight: '700',
       color: C.text,
       letterSpacing: -0.2,
     },
     ingredientsList: {
-      fontSize: 12,
+      fontSize: IS_TABLET ? 14 : 12,
       color: C.text3,
-      lineHeight: 18,
+      lineHeight: IS_TABLET ? 22 : 18,
     },
     cardBottom: {
       flexDirection: 'row',
@@ -328,7 +328,7 @@ function createStyles(C: ColorScheme) {
       marginLeft: 'auto',
     },
     time: {
-      fontSize: 11,
+      fontSize: IS_TABLET ? 13 : 11,
       color: C.text3,
       fontWeight: '500',
     },

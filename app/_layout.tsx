@@ -19,6 +19,15 @@ import "react-native-reanimated";
 
 const RC_IOS_API_KEY = process.env.EXPO_PUBLIC_RC_IOS_API_KEY ?? "";
 
+// Configure RevenueCat at module level so it's ready before any component mounts
+if (Platform.OS === "ios" && RC_IOS_API_KEY) {
+  try {
+    Purchases.configure({ apiKey: RC_IOS_API_KEY });
+  } catch (e) {
+    console.warn("RevenueCat init skipped (Expo Go / simulator):", e);
+  }
+}
+
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
@@ -34,15 +43,8 @@ function RootStack() {
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
   const paywallAutoShown = useRef(false);
 
-  // Configure RevenueCat & fetch premium status
+  // Fetch premium status on mount
   useEffect(() => {
-    if (Platform.OS === "ios") {
-      try {
-        Purchases.configure({ apiKey: RC_IOS_API_KEY });
-      } catch (e) {
-        console.warn("RevenueCat init skipped (Expo Go / simulator):", e);
-      }
-    }
     refreshPremium();
   }, [refreshPremium]);
 

@@ -2,7 +2,7 @@
   "expo": {
     "name": "DishMind",
     "slug": "recipe-maker",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "recipemaker",
@@ -11,9 +11,10 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "Malzemelerin fotoğrafını çekmek için kamera gerekli.",
-        "NSPhotoLibraryUsageDescription": "Galeriden malzeme fotoğrafı seçmek için gerekli.",
-        "ITSAppUsesNonExemptEncryption": false
+        "NSCameraUsageDescription": "DishMind uses your camera to scan ingredients and generate recipes.",
+        "NSPhotoLibraryUsageDescription": "DishMind uses your photo library to select ingredient photos and generate recipes.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleLocalizations": ["en", "fr", "de", "pt", "es", "tr"]
       },
       "bundleIdentifier": "com.erhanbizden.recipe-maker"
     },
