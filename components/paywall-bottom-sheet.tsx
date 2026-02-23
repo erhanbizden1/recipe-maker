@@ -331,9 +331,9 @@ const PaywallContent = ({
   const handleLegalLink = (type: "privacy" | "terms") => {
     const urls = {
       privacy:
-        "https://www.freeprivacypolicy.com/live/a649fc98-dc32-4fbd-8423-8ee177a3bbc4",
+        "https://www.freeprivacypolicy.com/live/bff0afed-700a-4ff1-90b9-db06bc78b3ac",
       terms:
-        "https://www.termsfeed.com/live/fee2f39b-54fe-438b-a1ff-3ef5d61a31de",
+        "https://www.termsfeed.com/live/ab19bd75-a435-45c7-a651-806570a0c99b",
     };
     Linking.openURL(urls[type]).catch(() =>
       Alert.alert(t.paywall.alerts.error, t.paywall.alerts.linkError),

@@ -23,8 +23,8 @@ import { CONTENT_MAX_W, IS_TABLET } from '@/lib/responsive';
 // TODO: Gerçek URL'lerle değiştir
 const APP_STORE_URL = 'https://apps.apple.com/app/idYOUR_APP_ID?action=write-review';
 const PLAY_STORE_URL = 'market://details?id=YOUR_PACKAGE_NAME';
-const PRIVACY_POLICY_URL = 'https://yoursite.com/privacy';
-const TERMS_URL = 'https://yoursite.com/terms';
+const PRIVACY_POLICY_URL = 'https://www.freeprivacypolicy.com/live/bff0afed-700a-4ff1-90b9-db06bc78b3ac';
+const TERMS_URL = 'https://www.termsfeed.com/live/ab19bd75-a435-45c7-a651-806570a0c99b';
 
 const THEME_PREFS: ThemePref[] = ['system', 'light', 'dark'];
 const LANGUAGES: Language[] = ['en', 'fr', 'de', 'pt', 'es', 'tr'];
@@ -223,7 +223,7 @@ function createStyles(C: ColorScheme) {
       paddingHorizontal: IS_TABLET ? 24 : 16,
     },
     sectionLabel: {
-      fontSize: 11,
+      fontSize: IS_TABLET ? 13 : 11,
       fontWeight: '700',
       color: C.text3,
       letterSpacing: 1.2,
@@ -235,14 +235,14 @@ function createStyles(C: ColorScheme) {
       borderRadius: 18,
       borderWidth: 1,
       borderColor: C.border,
-      paddingHorizontal: 16,
-      paddingVertical: 6,
+      paddingHorizontal: IS_TABLET ? 20 : 16,
+      paddingVertical: IS_TABLET ? 4 : 6,
     },
     linkRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
-      paddingVertical: 10,
+      paddingVertical: IS_TABLET ? 14 : 10,
     },
     langHeaderRow: {
       flexDirection: 'row',
@@ -257,15 +257,15 @@ function createStyles(C: ColorScheme) {
       marginLeft: 44,
     },
     rowIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 10,
+      width: IS_TABLET ? 40 : 32,
+      height: IS_TABLET ? 40 : 32,
+      borderRadius: IS_TABLET ? 13 : 10,
       backgroundColor: C.accentLight,
       alignItems: 'center',
       justifyContent: 'center',
     },
     rowLabel: {
-      fontSize: 16,
+      fontSize: IS_TABLET ? 19 : 16,
       fontWeight: '600',
       color: C.text,
       flex: 1,
@@ -279,7 +279,7 @@ function createStyles(C: ColorScheme) {
     },
     segment: {
       flex: 1,
-      paddingVertical: 9,
+      paddingVertical: IS_TABLET ? 12 : 9,
       borderRadius: 10,
       alignItems: 'center',
     },
@@ -291,7 +291,7 @@ function createStyles(C: ColorScheme) {
       shadowRadius: 4,
     },
     segmentText: {
-      fontSize: 14,
+      fontSize: IS_TABLET ? 16 : 14,
       fontWeight: '600',
       color: C.text3,
     },

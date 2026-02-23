@@ -294,7 +294,7 @@ function createStyles(C: ColorScheme) {
       fontSize: 80,
     },
     title: {
-      fontSize: IS_TABLET ? 32 : 28,
+      fontSize: IS_TABLET ? 48 : 28,
       fontWeight: '800',
       color: C.text,
       textAlign: 'center',
@@ -303,10 +303,10 @@ function createStyles(C: ColorScheme) {
       maxWidth: CONTENT_MAX_W,
     },
     description: {
-      fontSize: IS_TABLET ? 18 : 16,
+      fontSize: IS_TABLET ? 26 : 16,
       color: C.text2,
       textAlign: 'center',
-      lineHeight: IS_TABLET ? 28 : 24,
+      lineHeight: IS_TABLET ? 40 : 24,
       maxWidth: CONTENT_MAX_W,
     },
 

@@ -4,6 +4,7 @@ import { ColorScheme } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
 import { useTheme } from '@/contexts/theme';
 import { Recipe } from '@/lib/claude';
+import { IS_TABLET } from '@/lib/responsive';
 
 export default function RecipeCard({ recipe }: { recipe: Recipe }) {
   const [expanded, setExpanded] = useState(false);
@@ -126,7 +127,7 @@ function createStyles(C: ColorScheme) {
     card: {
       backgroundColor: C.surface,
       borderRadius: 22,
-      marginHorizontal: 16,
+      marginHorizontal: IS_TABLET ? 24 : 16,
       marginBottom: 12,
       overflow: 'hidden',
       borderWidth: 1,
@@ -135,30 +136,30 @@ function createStyles(C: ColorScheme) {
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 16,
-      gap: 14,
+      padding: IS_TABLET ? 22 : 16,
+      gap: IS_TABLET ? 18 : 14,
     },
     emojiBox: {
-      width: 58,
-      height: 58,
-      borderRadius: 16,
+      width: IS_TABLET ? 72 : 58,
+      height: IS_TABLET ? 72 : 58,
+      borderRadius: IS_TABLET ? 20 : 16,
       borderWidth: 1,
       alignItems: 'center',
       justifyContent: 'center',
       flexShrink: 0,
     },
     emoji: {
-      fontSize: 30,
+      fontSize: IS_TABLET ? 38 : 30,
     },
     headerMid: {
       flex: 1,
       gap: 8,
     },
     name: {
-      fontSize: 16,
+      fontSize: IS_TABLET ? 21 : 16,
       fontWeight: '700',
       color: C.text,
-      lineHeight: 21,
+      lineHeight: IS_TABLET ? 28 : 21,
       letterSpacing: -0.2,
     },
     meta: {
@@ -173,15 +174,15 @@ function createStyles(C: ColorScheme) {
       backgroundColor: C.surface2,
       borderWidth: 1,
       borderColor: C.border,
-      paddingHorizontal: 10,
-      paddingVertical: 4,
+      paddingHorizontal: IS_TABLET ? 14 : 10,
+      paddingVertical: IS_TABLET ? 6 : 4,
       borderRadius: 20,
     },
     metaIcon: {
-      fontSize: 11,
+      fontSize: IS_TABLET ? 13 : 11,
     },
     metaText: {
-      fontSize: 12,
+      fontSize: IS_TABLET ? 14 : 12,
       fontWeight: '600',
       color: C.text2,
     },
@@ -191,13 +192,13 @@ function createStyles(C: ColorScheme) {
       borderRadius: 3,
     },
     chevron: {
-      fontSize: 26,
+      fontSize: IS_TABLET ? 32 : 26,
       color: C.text3,
       fontWeight: '300',
-      lineHeight: 30,
+      lineHeight: IS_TABLET ? 38 : 30,
     },
     body: {
-      paddingHorizontal: 16,
+      paddingHorizontal: IS_TABLET ? 24 : 16,
       paddingBottom: 20,
     },
     divider: {
@@ -206,7 +207,7 @@ function createStyles(C: ColorScheme) {
       marginBottom: 18,
     },
     sectionLabel: {
-      fontSize: 11,
+      fontSize: IS_TABLET ? 13 : 11,
       fontWeight: '700',
       color: C.text3,
       letterSpacing: 1.2,
@@ -219,14 +220,14 @@ function createStyles(C: ColorScheme) {
     },
     ingChip: {
       backgroundColor: C.surface2,
-      paddingHorizontal: 13,
-      paddingVertical: 7,
+      paddingHorizontal: IS_TABLET ? 17 : 13,
+      paddingVertical: IS_TABLET ? 9 : 7,
       borderRadius: 20,
       borderWidth: 1,
       borderColor: C.border,
     },
     ingText: {
-      fontSize: 13,
+      fontSize: IS_TABLET ? 15 : 13,
       color: C.text,
       fontWeight: '500',
     },
@@ -242,20 +243,20 @@ function createStyles(C: ColorScheme) {
       borderWidth: 1,
       borderColor: C.border,
       alignItems: 'center',
-      paddingVertical: 10,
+      paddingVertical: IS_TABLET ? 14 : 10,
       paddingHorizontal: 4,
       gap: 3,
     },
     nutritionEmoji: {
-      fontSize: 15,
+      fontSize: IS_TABLET ? 18 : 15,
     },
     nutritionValue: {
-      fontSize: 13,
+      fontSize: IS_TABLET ? 15 : 13,
       fontWeight: '700',
       color: C.text,
     },
     nutritionLabel: {
-      fontSize: 10,
+      fontSize: IS_TABLET ? 12 : 10,
       color: C.text3,
       fontWeight: '500',
     },
@@ -269,19 +270,19 @@ function createStyles(C: ColorScheme) {
     },
     stepLeft: {
       alignItems: 'center',
-      width: 28,
+      width: IS_TABLET ? 36 : 28,
     },
     stepNum: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
+      width: IS_TABLET ? 36 : 28,
+      height: IS_TABLET ? 36 : 28,
+      borderRadius: IS_TABLET ? 18 : 14,
       borderWidth: 1,
       alignItems: 'center',
       justifyContent: 'center',
       flexShrink: 0,
     },
     stepNumText: {
-      fontSize: 12,
+      fontSize: IS_TABLET ? 14 : 12,
       fontWeight: '700',
     },
     stepLine: {
@@ -293,9 +294,9 @@ function createStyles(C: ColorScheme) {
     },
     stepText: {
       flex: 1,
-      fontSize: 14,
+      fontSize: IS_TABLET ? 16 : 14,
       color: C.text2,
-      lineHeight: 22,
+      lineHeight: IS_TABLET ? 26 : 22,
       paddingTop: 4,
       paddingBottom: 16,
     },

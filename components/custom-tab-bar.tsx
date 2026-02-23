@@ -61,7 +61,7 @@ export default function CustomTabBar({ state, navigation }: BottomTabBarProps) {
                 <View style={[styles.homeBtn, active && styles.homeBtnActive]}>
                   <IconSymbol
                     name={tab.icon}
-                    size={24}
+                    size={IS_TABLET ? 30 : 24}
                     color={active ? '#fff' : C.text3}
                   />
                 </View>
@@ -69,7 +69,7 @@ export default function CustomTabBar({ state, navigation }: BottomTabBarProps) {
                 <View style={[styles.iconWrap, active && styles.iconWrapActive]}>
                   <IconSymbol
                     name={tab.icon}
-                    size={20}
+                    size={IS_TABLET ? 26 : 20}
                     color={active ? C.accent : C.text3}
                   />
                 </View>
@@ -102,8 +102,8 @@ function createStyles(C: ColorScheme, isDark: boolean) {
       alignItems: 'center',
       backgroundColor: C.surface,
       borderRadius: 36,
-      paddingVertical: 10,
-      paddingHorizontal: 6,
+      paddingVertical: IS_TABLET ? 14 : 10,
+      paddingHorizontal: IS_TABLET ? 12 : 6,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: isDark ? 0.5 : 0.14,
@@ -111,20 +111,20 @@ function createStyles(C: ColorScheme, isDark: boolean) {
       elevation: 16,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: C.border,
-      maxWidth: IS_TABLET ? 380 : undefined,
+      maxWidth: IS_TABLET ? 520 : undefined,
       alignSelf: IS_TABLET ? 'center' : undefined,
     },
     tab: {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 4,
+      gap: IS_TABLET ? 6 : 4,
       paddingVertical: 2,
     },
     iconWrap: {
-      width: 44,
-      height: 34,
-      borderRadius: 17,
+      width: IS_TABLET ? 56 : 44,
+      height: IS_TABLET ? 42 : 34,
+      borderRadius: IS_TABLET ? 21 : 17,
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -132,9 +132,9 @@ function createStyles(C: ColorScheme, isDark: boolean) {
       backgroundColor: C.accentLight,
     },
     homeBtn: {
-      width: 52,
-      height: 44,
-      borderRadius: 22,
+      width: IS_TABLET ? 66 : 52,
+      height: IS_TABLET ? 54 : 44,
+      borderRadius: IS_TABLET ? 27 : 22,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: C.surface2,
@@ -150,7 +150,7 @@ function createStyles(C: ColorScheme, isDark: boolean) {
       shadowRadius: 10,
     },
     label: {
-      fontSize: 10,
+      fontSize: IS_TABLET ? 13 : 10,
       fontWeight: '600',
       color: C.text3,
       letterSpacing: 0.1,
