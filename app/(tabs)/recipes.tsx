@@ -75,7 +75,7 @@ export default function RecipesScreen() {
           style={styles.emptyBtn}
           onPress={() => router.replace('/')}
           activeOpacity={0.85}>
-          <Text style={styles.emptyBtnText}>{t.recipes.openCamera}</Text>
+          <Text style={styles.emptyBtnText}>{t.recipes.createRecipe}</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
