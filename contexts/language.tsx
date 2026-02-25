@@ -20,7 +20,7 @@ const STORAGE_KEY = 'app_language';
 function detectDeviceLanguage(): Language {
   const locales = Localization.getLocales();
   const tag = locales[0]?.languageCode ?? 'en';
-  const supported: Language[] = ['en', 'fr', 'de', 'pt', 'es', 'tr'];
+  const supported: Language[] = ['en', 'fr', 'de', 'pt', 'es', 'tr', 'ja', 'ko', 'it', 'nl'];
   return supported.includes(tag as Language) ? (tag as Language) : 'en';
 }
 
@@ -29,7 +29,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
-      const supported: Language[] = ['en', 'fr', 'de', 'pt', 'es', 'tr'];
+      const supported: Language[] = ['en', 'fr', 'de', 'pt', 'es', 'tr', 'ja', 'ko', 'it', 'nl'];
       if (stored && supported.includes(stored as Language)) {
         setLanguageState(stored as Language);
       } else {

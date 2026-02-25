@@ -29,6 +29,10 @@ const LANGUAGE_NAMES: Record<string, string> = {
   pt: 'Portuguese',
   es: 'Spanish',
   tr: 'Turkish',
+  ja: 'Japanese',
+  ko: 'Korean',
+  it: 'Italian',
+  nl: 'Dutch',
 };
 
 function buildSystemPrompt(language: string): string {

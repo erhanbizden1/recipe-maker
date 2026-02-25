@@ -28,7 +28,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import * as StoreReview from "expo-store-review";
 import Purchases, { PurchasesPackage } from "react-native-purchases";
 import { useLanguage } from "@/contexts/language";
 import { useUI } from "@/contexts/ui";
@@ -118,7 +117,7 @@ const PaywallContent = ({
   onPurchaseSuccess?: () => void;
 }) => {
   const { t } = useLanguage();
-  const { setPremium } = useUI();
+  const { setPremium, showRatingPrompt } = useUI();
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
@@ -285,13 +284,13 @@ const PaywallContent = ({
 
       if (!wasPremiumBefore && hasPremium) {
         setPremium(true);
-        StoreReview.hasAction().then((has) => { if (has) StoreReview.requestReview(); }).catch(() => {});
         Alert.alert(t.paywall.alerts.welcomePro, message, [
           {
             text: t.paywall.alerts.startCooking,
             onPress: () => {
               bottomSheetRef.current?.close();
               onPurchaseSuccess?.();
+              setTimeout(() => showRatingPrompt(), 800);
             },
           },
         ]);

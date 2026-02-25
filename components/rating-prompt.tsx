@@ -21,7 +21,7 @@ const APP_ICON = require('@/assets/images/icon.png');
 
 interface Props {
   visible: boolean;
-  onDismiss: () => void;
+  onDismiss: (accepted: boolean) => void;
 }
 
 export default function RatingPrompt({ visible, onDismiss }: Props) {
@@ -75,7 +75,7 @@ export default function RatingPrompt({ visible, onDismiss }: Props) {
   }
 
   async function handleYes() {
-    onDismiss();
+    onDismiss(true);
     logResponse('yes');
     const isAvailable = await StoreReview.isAvailableAsync();
     if (isAvailable) {
@@ -87,7 +87,7 @@ export default function RatingPrompt({ visible, onDismiss }: Props) {
   }
 
   function handleNo() {
-    onDismiss();
+    onDismiss(false);
     logResponse('no');
   }
 

@@ -27,7 +27,7 @@ const PRIVACY_POLICY_URL = 'https://www.freeprivacypolicy.com/live/bff0afed-700a
 const TERMS_URL = 'https://www.termsfeed.com/live/ab19bd75-a435-45c7-a651-806570a0c99b';
 
 const THEME_PREFS: ThemePref[] = ['system', 'light', 'dark'];
-const LANGUAGES: Language[] = ['en', 'fr', 'de', 'pt', 'es', 'tr'];
+const LANGUAGES: Language[] = ['en', 'fr', 'de', 'pt', 'es', 'tr', 'ja', 'ko', 'it', 'nl'];
 
 function openURL(url: string) {
   Linking.openURL(url).catch(() => {});
