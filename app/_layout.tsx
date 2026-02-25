@@ -1,4 +1,5 @@
 import PaywallBottomSheet from "@/components/paywall-bottom-sheet";
+import RatingPrompt from "@/components/rating-prompt";
 import { LanguageProvider } from "@/contexts/language";
 import { ThemeProvider, useTheme } from "@/contexts/theme";
 import { UIProvider, useUI } from "@/contexts/ui";
@@ -39,7 +40,7 @@ const ONBOARDING_KEY = "onboarding_complete";
 function RootStack() {
   const { isDark } = useTheme();
   const router = useRouter();
-  const { paywallRef, closePaywall, refreshPremium, isPremium, isPremiumLoaded, openPaywall } = useUI();
+  const { paywallRef, closePaywall, refreshPremium, isPremium, isPremiumLoaded, openPaywall, ratingVisible, dismissRatingPrompt } = useUI();
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
   const paywallAutoShown = useRef(false);
 
@@ -96,6 +97,7 @@ function RootStack() {
         />
       </Stack>
       <PaywallBottomSheet ref={paywallRef} onClosed={closePaywall} />
+      <RatingPrompt visible={ratingVisible} onDismiss={dismissRatingPrompt} />
     </NavThemeProvider>
   );
 }

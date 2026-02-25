@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Image,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Platform,
   ScrollView,
   StyleSheet,
@@ -13,7 +15,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Purchases from 'react-native-purchases';
-import RatingPrompt from '@/components/rating-prompt';
 import RecipeCard from '@/components/recipe-card';
 import { ColorScheme } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
@@ -24,7 +25,6 @@ import { db } from '@/lib/firebase';
 import { getDeviceId } from '@/lib/device-id';
 import { useRecipeHistory } from '@/hooks/use-recipe-history';
 import { CONTENT_MAX_W, IS_TABLET } from '@/lib/responsive';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const FREE_LIMIT = 1;
@@ -43,15 +43,14 @@ export default function RecipeResultScreen() {
   const { addEntry } = useRecipeHistory();
   const { colors: C, isDark } = useTheme();
   const { t, language } = useLanguage();
-  const { openPaywall } = useUI();
+  const { openPaywall, showRatingPrompt } = useUI();
   const styles = useMemo(() => createStyles(C), [C]);
 
   const [result, setResult] = useState<AnalysisResult | null>(
     cachedResult ? (JSON.parse(cachedResult) as AnalysisResult) : null
   );
   const [error, setError] = useState<string | null>(null);
-  const [ratingVisible, setRatingVisible] = useState(false);
-  const ratingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasTriggeredRating = useRef(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [currentPhotoIdx, setCurrentPhotoIdx] = useState(0);
   const spinAnim = useRef(new Animated.Value(0)).current;
@@ -78,7 +77,6 @@ export default function RecipeResultScreen() {
     return () => {
       if (msgInterval.current) clearInterval(msgInterval.current);
       if (photoInterval.current) clearInterval(photoInterval.current);
-      if (ratingTimer.current) clearTimeout(ratingTimer.current);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -170,7 +168,6 @@ export default function RecipeResultScreen() {
       } catch {}
 
       Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
-      maybeShowRatingPrompt();
     } catch (err) {
       if (msgInterval.current) clearInterval(msgInterval.current);
       const msg = err instanceof Error ? err.message : String(err);
@@ -179,18 +176,12 @@ export default function RecipeResultScreen() {
     }
   }
 
-  async function maybeShowRatingPrompt() {
-    const shown = await AsyncStorage.getItem('rating_prompted');
-    if (shown) return;
-    ratingTimer.current = setTimeout(() => {
-      setRatingVisible(true);
-    }, 5000);
-  }
-
-  function handleRatingDismiss() {
-    setRatingVisible(false);
-    AsyncStorage.setItem('rating_prompted', 'true');
-    if (ratingTimer.current) clearTimeout(ratingTimer.current);
+  function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
+    if (hasTriggeredRating.current || cachedResult) return;
+    if (event.nativeEvent.contentOffset.y > 200) {
+      hasTriggeredRating.current = true;
+      showRatingPrompt();
+    }
   }
 
   const spin = spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
@@ -272,7 +263,9 @@ export default function RecipeResultScreen() {
       <Animated.ScrollView
         style={{ opacity: fadeAnim }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scroll, { paddingBottom: 16 }]}>
+        contentContainerStyle={[styles.scroll, { paddingBottom: 16 }]}
+        onScroll={handleScroll}
+        scrollEventThrottle={200}>
 
         {result.detectedIngredients.length > 0 && (
           <View style={styles.ingredientsSection}>
@@ -308,7 +301,6 @@ export default function RecipeResultScreen() {
         </View>
       </View>
 
-      <RatingPrompt visible={ratingVisible} onDismiss={handleRatingDismiss} />
     </View>
   );
 }
