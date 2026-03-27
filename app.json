@@ -2,7 +2,7 @@
   "expo": {
     "name": "DishMind",
     "slug": "recipe-maker",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "recipemaker",
@@ -14,7 +14,18 @@
         "NSCameraUsageDescription": "DishMind uses your camera to scan ingredients and generate recipes.",
         "NSPhotoLibraryUsageDescription": "DishMind uses your photo library to select ingredient photos and generate recipes.",
         "ITSAppUsesNonExemptEncryption": false,
-        "CFBundleLocalizations": ["en", "fr", "de", "pt", "es", "tr"]
+        "CFBundleLocalizations": [
+          "en",
+          "fr",
+          "de",
+          "pt",
+          "es",
+          "tr",
+          "ja",
+          "ko",
+          "it",
+          "nl"
+        ]
       },
       "bundleIdentifier": "com.erhanbizden.recipe-maker"
     },

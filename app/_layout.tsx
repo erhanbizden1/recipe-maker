@@ -12,6 +12,7 @@ import {
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 
+import { getDeviceId } from "@/lib/device-id";
 import { useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -35,14 +36,30 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-const ONBOARDING_KEY = "onboarding_complete";
+const ONBOARDING_KEY = "onboarding_complete1";
 
 function RootStack() {
   const { isDark } = useTheme();
   const router = useRouter();
-  const { paywallRef, closePaywall, refreshPremium, isPremium, isPremiumLoaded, openPaywall, ratingVisible, dismissRatingPrompt } = useUI();
-  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
+  const {
+    paywallRef,
+    closePaywall,
+    refreshPremium,
+    isPremium,
+    isPremiumLoaded,
+    openPaywall,
+    ratingVisible,
+    dismissRatingPrompt,
+  } = useUI();
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(
+    null,
+  );
   const paywallAutoShown = useRef(false);
+
+  // Log device ID
+  useEffect(() => {
+    getDeviceId().then((id) => console.log("[Device ID]:", id));
+  }, []);
 
   // Fetch premium status on mount
   useEffect(() => {
@@ -78,7 +95,14 @@ function RootStack() {
     <NavThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
+        <Stack.Screen
+          name="onboarding"
+          options={{ headerShown: false, gestureEnabled: false }}
+        />
+        <Stack.Screen
+          name="onboarding-mood"
+          options={{ headerShown: false, gestureEnabled: false }}
+        />
         <Stack.Screen
           name="camera"
           options={{ headerShown: false, presentation: "fullScreenModal" }}

@@ -22,6 +22,21 @@ export interface AnalysisResult {
   detectedIngredients: string[];
 }
 
+const DIET_MAP: Record<string, string> = {
+  '1': 'no dietary restrictions',
+  '2': 'high protein / athlete diet',
+  '3': 'vegetarian or vegan',
+  '4': 'gluten-free',
+  '5': 'low calorie / fit diet',
+};
+
+const EQUIPMENT_MAP: Record<string, string> = {
+  '1': 'oven',
+  '2': 'air fryer',
+  '3': 'blender / food processor',
+  '4': 'basic stovetop and pan only',
+};
+
 const LANGUAGE_NAMES: Record<string, string> = {
   en: 'English',
   fr: 'French',
@@ -35,8 +50,14 @@ const LANGUAGE_NAMES: Record<string, string> = {
   nl: 'Dutch',
 };
 
-function buildSystemPrompt(language: string): string {
+function buildSystemPrompt(language: string, diet?: string, equipment?: string[]): string {
   const langName = LANGUAGE_NAMES[language] ?? 'English';
+  const dietLine = diet ? `- User's diet preference: ${DIET_MAP[diet] ?? diet}` : '';
+  const equipmentLine = equipment?.length
+    ? `- Available kitchen equipment: ${equipment.map(e => EQUIPMENT_MAP[e] ?? e).join(', ')}`
+    : '';
+  const personalization = [dietLine, equipmentLine].filter(Boolean).join('\n');
+
   return `You are an experienced chef assistant. Analyze the ingredient photos and/or text descriptions provided by the user and suggest practical, delicious recipes.
 
 Respond ONLY with valid JSON in this exact format (no other text):
@@ -62,7 +83,8 @@ Rules:
 - Suggest at least 2 and at most 4 recipes
 - Choose a meaningful emoji for each recipe
 - Keep steps concise and clear
-- Respond in ${langName} for all text fields (name, detectedIngredients, ingredients, steps, duration) except difficulty`;
+- Respond in ${langName} for all text fields (name, detectedIngredients, ingredients, steps, duration) except difficulty
+${personalization ? `\nUser preferences (respect these when suggesting recipes):\n${personalization}` : ''}`;
 }
 
 type ContentBlock =
@@ -73,7 +95,9 @@ export async function analyzeIngredients(
   imageUris: string[],
   textDescription?: string,
   onChunk?: (chunk: string) => void,
-  language = 'en'
+  language = 'en',
+  diet?: string,
+  equipment?: string[]
 ): Promise<AnalysisResult> {
   const content: ContentBlock[] = [];
 
@@ -101,7 +125,7 @@ export async function analyzeIngredients(
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
       max_tokens: 2048,
-      system: buildSystemPrompt(language),
+      system: buildSystemPrompt(language, diet, equipment),
       messages: [{ role: 'user', content }],
     }),
   });

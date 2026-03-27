@@ -1,10 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 // import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
+  Linking,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -67,25 +68,26 @@ export default function CameraScreen() {
     });
   }
 
-  if (!permission) {
+  useEffect(() => {
+    if (!permission) return;
+    if (!permission.granted && permission.canAskAgain) {
+      requestPermission();
+    } else if (!permission.granted && !permission.canAskAgain) {
+      Alert.alert(
+        t.camera.permissionTitle,
+        t.camera.permissionSub,
+        [
+          { text: t.camera.openSettings, onPress: () => Linking.openSettings() },
+          { text: t.camera.goBack, style: 'cancel', onPress: () => router.back() },
+        ],
+      );
+    }
+  }, [permission]);
+
+  if (!permission || !permission.granted) {
     return (
       <View style={styles.center}>
         <ActivityIndicator color={C.accent} size="large" />
-      </View>
-    );
-  }
-
-  if (!permission.granted) {
-    return (
-      <View style={styles.center}>
-        <View style={styles.permIcon}>
-          <Ionicons name="camera" size={40} color="#FF6B2B" />
-        </View>
-        <Text style={styles.permTitle}>{t.camera.permissionTitle}</Text>
-        <Text style={styles.permSub}>{t.camera.permissionSub}</Text>
-        <TouchableOpacity style={styles.permBtn} onPress={requestPermission} activeOpacity={0.85}>
-          <Text style={styles.permBtnText}>{t.camera.enableCamera}</Text>
-        </TouchableOpacity>
       </View>
     );
   }

@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -41,7 +42,7 @@ export default function RecipeResultScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { addEntry } = useRecipeHistory();
-  const { colors: C, isDark } = useTheme();
+  const { colors: C } = useTheme();
   const { t, language } = useLanguage();
   const { openPaywall, showRatingPrompt } = useUI();
   const styles = useMemo(() => createStyles(C), [C]);
@@ -147,7 +148,9 @@ export default function RecipeResultScreen() {
 
   async function startAnalysis() {
     try {
-      const analysisResult = await analyzeIngredients(imageUris, text || undefined, undefined, language);
+      const prefsRaw = await AsyncStorage.getItem('survey_prefs');
+      const prefs = prefsRaw ? JSON.parse(prefsRaw) : {};
+      const analysisResult = await analyzeIngredients(imageUris, text || undefined, undefined, language, prefs.diet, prefs.equipment);
       if (msgInterval.current) clearInterval(msgInterval.current);
       setResult(analysisResult);
       await addEntry({
@@ -189,7 +192,7 @@ export default function RecipeResultScreen() {
   if (error) {
     return (
       <View style={[styles.fullCenter, { paddingTop: insets.top }]}>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <StatusBar style="dark" />
         <View style={styles.errorIcon}>
           <Text style={{ fontSize: 36 }}>😕</Text>
         </View>
@@ -207,7 +210,7 @@ export default function RecipeResultScreen() {
       const scanY = scanAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 260] });
       return (
         <View style={[styles.fullCenter, { paddingTop: insets.top }]}>
-          <StatusBar style={isDark ? 'light' : 'dark'} />
+          <StatusBar style="dark" />
           {/* Photo with scan overlay */}
           <View style={styles.photoWrap}>
             <Animated.Image
@@ -233,7 +236,7 @@ export default function RecipeResultScreen() {
 
     return (
       <View style={[styles.fullCenter, { paddingTop: insets.top }]}>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <StatusBar style="dark" />
         <View style={styles.spinnerWrap}>
           <Animated.View style={[styles.spinnerRing, { transform: [{ rotate: spin }] }]} />
         </View>
@@ -246,7 +249,7 @@ export default function RecipeResultScreen() {
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <StatusBar style="dark" />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -410,12 +413,10 @@ function createStyles(C: ColorScheme) {
       width: 80,
       height: 80,
       borderRadius: 24,
-      backgroundColor: C.surface,
+      backgroundColor: C.surface2,
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: 20,
-      borderWidth: 1,
-      borderColor: C.border,
     },
     errorTitle: {
       fontSize: 24,
@@ -431,9 +432,7 @@ function createStyles(C: ColorScheme) {
       marginBottom: 28,
     },
     backBtn: {
-      backgroundColor: C.surface,
-      borderWidth: 1,
-      borderColor: C.border,
+      backgroundColor: C.surface2,
       paddingHorizontal: 28,
       paddingVertical: 14,
       borderRadius: 30,
@@ -458,9 +457,7 @@ function createStyles(C: ColorScheme) {
       width: 36,
       height: 36,
       borderRadius: 18,
-      backgroundColor: C.surface,
-      borderWidth: 1,
-      borderColor: C.border,
+      backgroundColor: C.surface2,
       alignItems: 'center',
       justifyContent: 'center',
       marginRight: 12,
@@ -480,8 +477,6 @@ function createStyles(C: ColorScheme) {
     },
     recipeBadge: {
       backgroundColor: C.accentLight,
-      borderWidth: 1,
-      borderColor: C.accent + '55',
       paddingHorizontal: 12,
       paddingVertical: 4,
       borderRadius: 20,
@@ -513,9 +508,7 @@ function createStyles(C: ColorScheme) {
       gap: 6,
     },
     tag: {
-      backgroundColor: C.surface,
-      borderWidth: 1,
-      borderColor: C.border,
+      backgroundColor: C.surface2,
       paddingHorizontal: IS_TABLET ? 18 : 14,
       paddingVertical: IS_TABLET ? 10 : 7,
       borderRadius: 20,
