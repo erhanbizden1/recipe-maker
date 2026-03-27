@@ -232,7 +232,15 @@ const PaywallContent = ({
           });
 
           setPackages(sorted);
-          if (sorted.length > 0) setSelectedPackage(sorted[0]);
+          if (sorted.length > 0) {
+            const weekly = sorted.find((p) => p.packageType === "WEEKLY");
+            const defaultPkg = weekly ?? sorted[0];
+            setSelectedPackage(defaultPkg);
+            if (defaultPkg.packageType === "WEEKLY") {
+              const hasFree = defaultPkg.product?.introPrice?.price === 0;
+              setFreeTrialEnabled(hasFree);
+            }
+          }
         }
       } catch (e) {
         console.error("Package loading error:", e);

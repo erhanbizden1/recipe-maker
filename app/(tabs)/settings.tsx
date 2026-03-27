@@ -16,7 +16,7 @@ import { TAB_BAR_BASE_HEIGHT } from '@/components/custom-tab-bar';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ColorScheme } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
-import { ThemePref, useTheme } from '@/contexts/theme';
+import { useTheme } from '@/contexts/theme';
 import { Language, LANGUAGE_LABELS } from '@/lib/i18n';
 import { CONTENT_MAX_W, IS_TABLET } from '@/lib/responsive';
 
@@ -26,7 +26,6 @@ const PLAY_STORE_URL = 'market://details?id=YOUR_PACKAGE_NAME';
 const PRIVACY_POLICY_URL = 'https://www.freeprivacypolicy.com/live/bff0afed-700a-4ff1-90b9-db06bc78b3ac';
 const TERMS_URL = 'https://www.termsfeed.com/live/ab19bd75-a435-45c7-a651-806570a0c99b';
 
-const THEME_PREFS: ThemePref[] = ['system', 'light', 'dark'];
 const LANGUAGES: Language[] = ['en', 'fr', 'de', 'pt', 'es', 'tr', 'ja', 'ko', 'it', 'nl'];
 
 function openURL(url: string) {
@@ -38,7 +37,7 @@ function handleRate() {
 }
 
 export default function SettingsScreen() {
-  const { colors: C, pref, setPref, isDark } = useTheme();
+  const { colors: C, isDark } = useTheme();
 
   useFocusEffect(useCallback(() => {
     setStatusBarStyle(isDark ? 'light' : 'dark');
@@ -48,11 +47,6 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const bottomPad = TAB_BAR_BASE_HEIGHT + Math.max(insets.bottom, 12);
 
-  const themeLabels: Record<ThemePref, string> = {
-    system: t.settings.system,
-    light: t.settings.light,
-    dark: t.settings.dark,
-  };
 
   async function handleShare() {
     try {
@@ -77,31 +71,6 @@ export default function SettingsScreen() {
         contentContainerStyle={{ paddingBottom: bottomPad + 24 }}>
         <View style={styles.inner}>
 
-      {/* Appearance */}
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>{t.settings.appearance}</Text>
-        <View style={styles.card}>
-          <View style={styles.linkRow}>
-            <View style={styles.rowIcon}>
-              <IconSymbol name="moon.fill" size={16} color={C.accent} />
-            </View>
-            <Text style={styles.rowLabel}>{t.settings.theme}</Text>
-          </View>
-          <View style={styles.segmented}>
-            {THEME_PREFS.map((value) => (
-              <TouchableOpacity
-                key={value}
-                style={[styles.segment, pref === value && styles.segmentActive]}
-                onPress={() => setPref(value)}
-                activeOpacity={0.75}>
-                <Text style={[styles.segmentText, pref === value && styles.segmentTextActive]}>
-                  {themeLabels[value]}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      </View>
 
       {/* Language — disabled for now
       <View style={styles.section}>

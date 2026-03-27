@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
-import { StatusBar, setStatusBarStyle } from 'expo-status-bar';
+import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useMemo } from 'react';
 import {
   FlatList,
@@ -34,38 +34,30 @@ export default function RecipesScreen() {
   const { history, removeEntry, refresh } = useRecipeHistory();
   const router = useRouter();
 
-  useFocusEffect(useCallback(() => {
-    refresh();
-  }, []));
-  const { colors: C, isDark } = useTheme();
+  useFocusEffect(useCallback(() => { refresh(); }, []));
 
-  useFocusEffect(useCallback(() => {
-    setStatusBarStyle(isDark ? 'light' : 'dark');
-  }, [isDark]));
+  const { colors: C } = useTheme();
   const { t } = useLanguage();
   const styles = useMemo(() => createStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const bottomPad = TAB_BAR_BASE_HEIGHT + Math.max(insets.bottom, 12);
 
-  const handlePress = useCallback(
-    (entry: HistoryEntry) => {
-      router.push({
-        pathname: '/recipe-result',
-        params: {
-          photos: JSON.stringify([]),
-          text: entry.textDescription ?? '',
-          thumbnail: entry.thumbnailUri ?? '',
-          cachedResult: JSON.stringify(entry.result),
-        },
-      });
-    },
-    [router]
-  );
+  const handlePress = useCallback((entry: HistoryEntry) => {
+    router.push({
+      pathname: '/recipe-result',
+      params: {
+        photos: JSON.stringify([]),
+        text: entry.textDescription ?? '',
+        thumbnail: entry.thumbnailUri ?? '',
+        cachedResult: JSON.stringify(entry.result),
+      },
+    });
+  }, [router]);
 
   if (history.length === 0) {
     return (
       <SafeAreaView style={[styles.emptyRoot, { paddingBottom: bottomPad }]}>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <StatusBar style="dark" />
         <View style={styles.emptyIcon}>
           <Text style={{ fontSize: IS_TABLET ? 56 : 44 }}>🍽️</Text>
         </View>
@@ -83,7 +75,7 @@ export default function RecipesScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <StatusBar style="dark" />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t.recipes.myRecipes}</Text>
         <View style={styles.countChip}>
@@ -125,7 +117,6 @@ function HistoryCard({
 
   return (
     <TouchableOpacity style={styles.card} onPress={() => onPress(item)} activeOpacity={0.8}>
-      {/* Thumbnail */}
       {item.thumbnailUri ? (
         <Image source={{ uri: item.thumbnailUri }} style={styles.thumb} />
       ) : (
@@ -134,21 +125,17 @@ function HistoryCard({
         </View>
       )}
 
-      {/* Content */}
       <View style={styles.cardContent}>
-        {/* Recipe name */}
         <Text style={styles.recipeName} numberOfLines={1}>
           {firstRecipe.emoji} {firstRecipe.name}
         </Text>
 
-        {/* Detected ingredients */}
         {item.result.detectedIngredients.length > 0 && (
           <Text style={styles.ingredientsList} numberOfLines={1}>
             {item.result.detectedIngredients.slice(0, 5).join(' · ')}
           </Text>
         )}
 
-        {/* Bottom row */}
         <View style={styles.cardBottom}>
           {extraCount > 0 && (
             <View style={styles.extraChip}>
@@ -187,12 +174,10 @@ function createStyles(C: ColorScheme) {
       width: IS_TABLET ? 120 : 96,
       height: IS_TABLET ? 120 : 96,
       borderRadius: 30,
-      backgroundColor: C.surface,
+      backgroundColor: C.surface2,
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: 24,
-      borderWidth: 1,
-      borderColor: C.border,
     },
     emptyTitle: {
       fontSize: IS_TABLET ? 32 : 26,
@@ -220,7 +205,7 @@ function createStyles(C: ColorScheme) {
       shadowRadius: 12,
     },
     emptyBtnText: {
-      color: C.white,
+      color: '#fff',
       fontWeight: '700',
       fontSize: IS_TABLET ? 19 : 16,
     },
@@ -243,15 +228,8 @@ function createStyles(C: ColorScheme) {
       letterSpacing: -0.5,
       flex: 1,
     },
-    flatList: {
-      maxWidth: CONTENT_MAX_W,
-      alignSelf: 'center',
-      width: '100%',
-    },
     countChip: {
       backgroundColor: C.surface2,
-      borderWidth: 1,
-      borderColor: C.border,
       paddingHorizontal: 12,
       paddingVertical: 4,
       borderRadius: 20,
@@ -261,9 +239,14 @@ function createStyles(C: ColorScheme) {
       fontSize: 14,
       fontWeight: '600',
     },
+    flatList: {
+      maxWidth: CONTENT_MAX_W,
+      alignSelf: 'center',
+      width: '100%',
+    },
     list: {
       paddingHorizontal: IS_TABLET ? 24 : 16,
-      paddingTop: 12,
+      paddingTop: 16,
       paddingBottom: 32,
     },
     separator: {
@@ -271,10 +254,8 @@ function createStyles(C: ColorScheme) {
     },
     card: {
       flexDirection: 'row',
-      backgroundColor: C.surface,
+      backgroundColor: C.surface2,
       borderRadius: 20,
-      borderWidth: 1,
-      borderColor: C.border,
       overflow: 'hidden',
       minHeight: IS_TABLET ? 130 : 100,
     },
@@ -283,7 +264,7 @@ function createStyles(C: ColorScheme) {
       alignSelf: 'stretch',
     },
     thumbPlaceholder: {
-      backgroundColor: C.surface2,
+      backgroundColor: C.border,
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -310,8 +291,6 @@ function createStyles(C: ColorScheme) {
     },
     extraChip: {
       backgroundColor: C.accentLight,
-      borderWidth: 1,
-      borderColor: C.accent + '44',
       paddingHorizontal: 8,
       paddingVertical: 3,
       borderRadius: 8,
@@ -336,13 +315,13 @@ function createStyles(C: ColorScheme) {
       width: 24,
       height: 24,
       borderRadius: 12,
-      backgroundColor: C.surface2,
+      backgroundColor: C.white,
       alignItems: 'center',
       justifyContent: 'center',
     },
     deleteIcon: {
       fontSize: 10,
-      color: C.text3,
+      color: C.text2,
       fontWeight: '800',
     },
   });

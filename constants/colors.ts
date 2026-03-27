@@ -35,7 +35,7 @@ export const darkColors: ColorScheme = {
 };
 
 export const lightColors: ColorScheme = {
-  bg: '#F2F2F7',
+  bg: '#FFFFFF',
   surface: '#FFFFFF',
   surface2: '#F2F2F7',
   border: '#E5E5EA',
