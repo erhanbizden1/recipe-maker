@@ -80,7 +80,7 @@ function Dot({
 export default function OnboardingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors: C, isDark } = useTheme();
+  const { colors: C } = useTheme();
   const { t } = useLanguage();
   const styles = useMemo(() => createStyles(C), [C]);
   const scrollX = useSharedValue(0);
@@ -114,7 +114,7 @@ export default function OnboardingScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <StatusBar style="dark" />
       <FlatList
         ref={flatListRef}
         data={STEPS}

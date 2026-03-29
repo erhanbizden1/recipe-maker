@@ -21,13 +21,13 @@ export default function IngredientsScreen() {
   const [input, setInput] = useState('');
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors: C, isDark } = useTheme();
+  const { colors: C } = useTheme();
   const { t } = useLanguage();
   const styles = useMemo(() => createStyles(C), [C]);
 
   useEffect(() => {
-    setStatusBarStyle(isDark ? 'light' : 'dark');
-  }, [isDark]);
+    setStatusBarStyle('dark');
+  }, []);
 
   const canSubmit = input.trim().length > 0;
 

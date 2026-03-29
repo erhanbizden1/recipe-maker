@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ColorScheme } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
@@ -6,9 +6,17 @@ import { useTheme } from '@/contexts/theme';
 import { Recipe } from '@/lib/claude';
 import { IS_TABLET } from '@/lib/responsive';
 
-export default function RecipeCard({ recipe }: { recipe: Recipe }) {
-  const [expanded, setExpanded] = useState(false);
+export default function RecipeCard({
+  recipe,
+  expanded,
+  onToggle,
+}: {
+  recipe: Recipe;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
   const rotateAnim = useRef(new Animated.Value(0)).current;
+  const heightAnim = useRef(new Animated.Value(0)).current;
   const { colors: C } = useTheme();
   const { t } = useLanguage();
   const styles = useMemo(() => createStyles(C), [C]);
@@ -18,23 +26,36 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
     recipe.difficulty === 'Hard' ? C.red :
     C.yellow;
 
+  useEffect(() => {
+    const toValue = expanded ? 1 : 0;
+    if (expanded) {
+      Animated.parallel([
+        Animated.spring(rotateAnim, { toValue, useNativeDriver: true, speed: 20, bounciness: 4 }),
+        Animated.timing(heightAnim, { toValue, duration: 300, useNativeDriver: false }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.spring(rotateAnim, { toValue, useNativeDriver: true, speed: 20, bounciness: 4 }),
+        Animated.timing(heightAnim, { toValue, duration: 0, useNativeDriver: false }),
+      ]).start();
+    }
+  }, [expanded]);
+
   function toggle() {
-    const toValue = expanded ? 0 : 1;
-    setExpanded(!expanded);
-    Animated.spring(rotateAnim, { toValue, useNativeDriver: true, speed: 20, bounciness: 4 }).start();
+    onToggle();
   }
+
+  const maxHeight = heightAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 2000],
+  });
 
   const rotation = rotateAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '90deg'] });
 
   return (
-    <View style={styles.card}>
+    <View style={styles.cardShadow}>
+      <View style={styles.card}>
       <TouchableOpacity onPress={toggle} activeOpacity={0.75} style={styles.header}>
-        {/* Emoji container */}
-        <View style={[styles.emojiBox, { backgroundColor: diffColor + '18', borderColor: diffColor + '40' }]}>
-          <Text style={styles.emoji}>{recipe.emoji}</Text>
-        </View>
-
-        {/* Name + meta */}
         <View style={styles.headerMid}>
           <Text style={styles.name} numberOfLines={2}>{recipe.name}</Text>
           <View style={styles.meta}>
@@ -48,7 +69,7 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
                 <Text style={styles.metaText}>{recipe.nutrition.calories} {t.recipeCard.kcal}</Text>
               </View>
             )}
-            <View style={[styles.metaChip, { backgroundColor: diffColor + '18', borderColor: diffColor + '40' }]}>
+            <View style={[styles.metaChip, { backgroundColor: diffColor + '18' }]}>
               <View style={[styles.dot, { backgroundColor: diffColor }]} />
               <Text style={[styles.metaText, { color: diffColor }]}>
                 {recipe.difficulty === 'Easy' ? t.recipeCard.easy : recipe.difficulty === 'Hard' ? t.recipeCard.hard : t.recipeCard.medium}
@@ -57,11 +78,10 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
           </View>
         </View>
 
-        {/* Chevron */}
         <Animated.Text style={[styles.chevron, { transform: [{ rotate: rotation }] }]}>›</Animated.Text>
       </TouchableOpacity>
 
-      {expanded && (
+      <Animated.View style={{ maxHeight, overflow: 'hidden' }}>
         <View style={styles.body}>
           <View style={styles.divider} />
 
@@ -77,10 +97,10 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
                   { emoji: '💪', value: recipe.nutrition.protein, label: t.recipeCard.protein },
                   { emoji: '🌾', value: recipe.nutrition.carbs, label: t.recipeCard.carbs },
                   { emoji: '🫙', value: recipe.nutrition.fat, label: t.recipeCard.fat },
-                ].map((item) => (
-                  <View key={item.label} style={styles.nutritionItem}>
+                ].map((item, idx) => (
+                  <View key={item.label} style={[styles.nutritionItem, idx === 0 && { backgroundColor: C.accentLight }]}>
                     <Text style={styles.nutritionEmoji}>{item.emoji}</Text>
-                    <Text style={styles.nutritionValue}>{item.value}</Text>
+                    <Text style={[styles.nutritionValue, idx === 0 && { color: C.accent }]}>{item.value}</Text>
                     <Text style={styles.nutritionLabel}>{item.label}</Text>
                   </View>
                 ))}
@@ -103,13 +123,12 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
           <View style={styles.stepsContainer}>
             {recipe.steps.map((step, i) => (
               <View key={i} style={styles.step}>
-                {/* Number + line */}
                 <View style={styles.stepLeft}>
-                  <View style={[styles.stepNum, { backgroundColor: diffColor + '18', borderColor: diffColor + '50' }]}>
-                    <Text style={[styles.stepNumText, { color: diffColor }]}>{i + 1}</Text>
+                  <View style={[styles.stepNum, { backgroundColor: C.accent }]}>
+                    <Text style={styles.stepNumText}>{i + 1}</Text>
                   </View>
                   {i < recipe.steps.length - 1 && (
-                    <View style={[styles.stepLine, { backgroundColor: diffColor + '30' }]} />
+                    <View style={[styles.stepLine, { backgroundColor: C.border }]} />
                   )}
                 </View>
                 <Text style={styles.stepText}>{step}</Text>
@@ -117,49 +136,53 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
             ))}
           </View>
         </View>
-      )}
+      </Animated.View>
+      </View>
     </View>
   );
 }
 
 function createStyles(C: ColorScheme) {
   return StyleSheet.create({
+    cardShadow: {
+      borderRadius: 20,
+      marginHorizontal: IS_TABLET ? 24 : 16,
+      marginBottom: 14,
+      backgroundColor: C.surface,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.10,
+      shadowRadius: 12,
+      elevation: 4,
+    },
     card: {
       backgroundColor: C.surface,
-      borderRadius: 22,
-      marginHorizontal: IS_TABLET ? 24 : 16,
-      marginBottom: 12,
+      borderRadius: 20,
       overflow: 'hidden',
-      borderWidth: 1,
-      borderColor: C.border,
+    },
+    diffStrip: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 4,
     },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: IS_TABLET ? 22 : 16,
-      gap: IS_TABLET ? 18 : 14,
-    },
-    emojiBox: {
-      width: IS_TABLET ? 72 : 58,
-      height: IS_TABLET ? 72 : 58,
-      borderRadius: IS_TABLET ? 20 : 16,
-      borderWidth: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-    },
-    emoji: {
-      fontSize: IS_TABLET ? 38 : 30,
+      paddingHorizontal: IS_TABLET ? 20 : 16,
+      paddingVertical: IS_TABLET ? 28 : 22,
+      gap: IS_TABLET ? 16 : 12,
     },
     headerMid: {
       flex: 1,
       gap: 8,
     },
     name: {
-      fontSize: IS_TABLET ? 21 : 16,
+      fontSize: IS_TABLET ? 20 : 16,
       fontWeight: '700',
       color: C.text,
-      lineHeight: IS_TABLET ? 28 : 21,
+      lineHeight: IS_TABLET ? 27 : 22,
       letterSpacing: -0.2,
     },
     meta: {
@@ -172,17 +195,15 @@ function createStyles(C: ColorScheme) {
       alignItems: 'center',
       gap: 4,
       backgroundColor: C.surface2,
-      borderWidth: 1,
-      borderColor: C.border,
-      paddingHorizontal: IS_TABLET ? 14 : 10,
-      paddingVertical: IS_TABLET ? 6 : 4,
+      paddingHorizontal: IS_TABLET ? 12 : 9,
+      paddingVertical: IS_TABLET ? 5 : 3,
       borderRadius: 20,
     },
     metaIcon: {
-      fontSize: IS_TABLET ? 13 : 11,
+      fontSize: IS_TABLET ? 12 : 10,
     },
     metaText: {
-      fontSize: IS_TABLET ? 14 : 12,
+      fontSize: IS_TABLET ? 13 : 11,
       fontWeight: '600',
       color: C.text2,
     },
@@ -192,13 +213,14 @@ function createStyles(C: ColorScheme) {
       borderRadius: 3,
     },
     chevron: {
-      fontSize: IS_TABLET ? 32 : 26,
+      fontSize: IS_TABLET ? 30 : 24,
       color: C.text3,
       fontWeight: '300',
-      lineHeight: IS_TABLET ? 38 : 30,
+      lineHeight: IS_TABLET ? 36 : 28,
     },
     body: {
-      paddingHorizontal: IS_TABLET ? 24 : 16,
+      paddingLeft: IS_TABLET ? 26 : 20,
+      paddingRight: IS_TABLET ? 20 : 16,
       paddingBottom: 20,
     },
     divider: {
@@ -207,10 +229,11 @@ function createStyles(C: ColorScheme) {
       marginBottom: 18,
     },
     sectionLabel: {
-      fontSize: IS_TABLET ? 13 : 11,
+      fontSize: IS_TABLET ? 11 : 10,
       fontWeight: '700',
-      color: C.text3,
-      letterSpacing: 1.2,
+      color: C.accent,
+      letterSpacing: 1.1,
+      textTransform: 'uppercase',
       marginBottom: 10,
     },
     ingredientGrid: {
@@ -220,14 +243,12 @@ function createStyles(C: ColorScheme) {
     },
     ingChip: {
       backgroundColor: C.surface2,
-      paddingHorizontal: IS_TABLET ? 17 : 13,
-      paddingVertical: IS_TABLET ? 9 : 7,
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: C.border,
+      paddingHorizontal: IS_TABLET ? 14 : 11,
+      paddingVertical: IS_TABLET ? 7 : 6,
+      borderRadius: 10,
     },
     ingText: {
-      fontSize: IS_TABLET ? 15 : 13,
+      fontSize: IS_TABLET ? 14 : 12,
       color: C.text,
       fontWeight: '500',
     },
@@ -240,15 +261,13 @@ function createStyles(C: ColorScheme) {
       flex: 1,
       backgroundColor: C.surface2,
       borderRadius: 14,
-      borderWidth: 1,
-      borderColor: C.border,
       alignItems: 'center',
-      paddingVertical: IS_TABLET ? 14 : 10,
+      paddingVertical: IS_TABLET ? 13 : 10,
       paddingHorizontal: 4,
       gap: 3,
     },
     nutritionEmoji: {
-      fontSize: IS_TABLET ? 18 : 15,
+      fontSize: IS_TABLET ? 16 : 14,
     },
     nutritionValue: {
       fontSize: IS_TABLET ? 15 : 13,
@@ -256,7 +275,7 @@ function createStyles(C: ColorScheme) {
       color: C.text,
     },
     nutritionLabel: {
-      fontSize: IS_TABLET ? 12 : 10,
+      fontSize: IS_TABLET ? 11 : 9,
       color: C.text3,
       fontWeight: '500',
     },
@@ -270,20 +289,20 @@ function createStyles(C: ColorScheme) {
     },
     stepLeft: {
       alignItems: 'center',
-      width: IS_TABLET ? 36 : 28,
+      width: IS_TABLET ? 32 : 26,
     },
     stepNum: {
-      width: IS_TABLET ? 36 : 28,
-      height: IS_TABLET ? 36 : 28,
-      borderRadius: IS_TABLET ? 18 : 14,
-      borderWidth: 1,
+      width: IS_TABLET ? 32 : 26,
+      height: IS_TABLET ? 32 : 26,
+      borderRadius: IS_TABLET ? 16 : 13,
       alignItems: 'center',
       justifyContent: 'center',
       flexShrink: 0,
     },
     stepNumText: {
-      fontSize: IS_TABLET ? 14 : 12,
+      fontSize: IS_TABLET ? 13 : 11,
       fontWeight: '700',
+      color: '#fff',
     },
     stepLine: {
       width: 2,
@@ -294,9 +313,9 @@ function createStyles(C: ColorScheme) {
     },
     stepText: {
       flex: 1,
-      fontSize: IS_TABLET ? 16 : 14,
+      fontSize: IS_TABLET ? 15 : 13,
       color: C.text2,
-      lineHeight: IS_TABLET ? 26 : 22,
+      lineHeight: IS_TABLET ? 25 : 21,
       paddingTop: 4,
       paddingBottom: 16,
     },

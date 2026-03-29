@@ -11,6 +11,7 @@ import {
 } from "@react-navigation/native";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { setStatusBarStyle } from "expo-status-bar";
 
 import { getDeviceId } from "@/lib/device-id";
 import { useEffect, useRef, useState } from "react";
@@ -36,7 +37,7 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-const ONBOARDING_KEY = "onboarding_complete1";
+const ONBOARDING_KEY = "onboarding_complete_v2";
 
 function RootStack() {
   const { isDark } = useTheme();
@@ -76,10 +77,12 @@ function RootStack() {
   // Navigate to onboarding if not complete; hide splash
   useEffect(() => {
     if (onboardingComplete === null) return;
-    SplashScreen.hideAsync();
     if (!onboardingComplete) {
       router.replace("/onboarding");
+    } else {
+      setStatusBarStyle("light");
     }
+    SplashScreen.hideAsync();
   }, [onboardingComplete]);
 
   // Auto-show paywall on every app open (if not premium & onboarding done)
@@ -113,6 +116,10 @@ function RootStack() {
         />
         <Stack.Screen
           name="recipe-result"
+          options={{ headerShown: false, presentation: "card" }}
+        />
+        <Stack.Screen
+          name="preferences"
           options={{ headerShown: false, presentation: "card" }}
         />
         <Stack.Screen

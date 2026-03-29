@@ -1,5 +1,5 @@
-import { useFocusEffect } from 'expo-router';
-import { StatusBar, setStatusBarStyle } from 'expo-status-bar';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { setStatusBarStyle } from 'expo-status-bar';
 import React, { useCallback, useMemo } from 'react';
 import {
   Linking,
@@ -17,36 +17,29 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ColorScheme } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
 import { useTheme } from '@/contexts/theme';
-import { Language, LANGUAGE_LABELS } from '@/lib/i18n';
 import { CONTENT_MAX_W, IS_TABLET } from '@/lib/responsive';
 
-// TODO: Gerçek URL'lerle değiştir
 const APP_STORE_URL = 'https://apps.apple.com/app/idYOUR_APP_ID?action=write-review';
 const PLAY_STORE_URL = 'market://details?id=YOUR_PACKAGE_NAME';
 const PRIVACY_POLICY_URL = 'https://www.freeprivacypolicy.com/live/bff0afed-700a-4ff1-90b9-db06bc78b3ac';
 const TERMS_URL = 'https://www.termsfeed.com/live/ab19bd75-a435-45c7-a651-806570a0c99b';
 
-const LANGUAGES: Language[] = ['en', 'fr', 'de', 'pt', 'es', 'tr', 'ja', 'ko', 'it', 'nl'];
-
 function openURL(url: string) {
   Linking.openURL(url).catch(() => {});
 }
 
-function handleRate() {
-  openURL(Platform.OS === 'ios' ? APP_STORE_URL : PLAY_STORE_URL);
-}
-
 export default function SettingsScreen() {
   const { colors: C, isDark } = useTheme();
+  const router = useRouter();
 
   useFocusEffect(useCallback(() => {
-    setStatusBarStyle(isDark ? 'light' : 'dark');
+    setStatusBarStyle('dark');
   }, [isDark]));
-  const { t, language, setLanguage } = useLanguage();
+
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const bottomPad = TAB_BAR_BASE_HEIGHT + Math.max(insets.bottom, 12);
-
 
   async function handleShare() {
     try {
@@ -54,13 +47,16 @@ export default function SettingsScreen() {
     } catch {}
   }
 
+  function handleRate() {
+    openURL(Platform.OS === 'ios' ? APP_STORE_URL : PLAY_STORE_URL);
+  }
+
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
 
-      {/* Fixed header */}
+
       <View style={styles.headerWrap}>
-        <View style={[styles.header, { maxWidth: CONTENT_MAX_W, alignSelf: 'center', width: '100%' }]}>
+        <View style={styles.header}>
           <Text style={styles.title}>{t.settings.title}</Text>
         </View>
       </View>
@@ -68,96 +64,122 @@ export default function SettingsScreen() {
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: bottomPad + 24 }}>
-        <View style={styles.inner}>
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPad + 24 }]}>
 
-
-      {/* Language — disabled for now
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>{t.settings.language}</Text>
-        <View style={styles.card}>
-          <View style={styles.langHeaderRow}>
-            <View style={[styles.rowIcon, { backgroundColor: 'rgba(90,120,255,0.12)' }]}>
-              <IconSymbol name="globe" size={16} color="#5A78FF" />
-            </View>
-            <Text style={styles.rowLabel}>{t.settings.appLanguage}</Text>
-          </View>
-          <View style={styles.langGrid}>
-            {LANGUAGES.map((lang) => (
-              <TouchableOpacity
-                key={lang}
-                style={[styles.langChip, language === lang && styles.langChipActive]}
-                onPress={() => setLanguage(lang)}
-                activeOpacity={0.75}>
-                <Text style={[styles.langChipText, language === lang && styles.langChipTextActive]}>
-                  {LANGUAGE_LABELS[lang]}
-                </Text>
-              </TouchableOpacity>
-            ))}
+        {/* Preferences */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>{t.settings.preferences ?? 'Preferences'}</Text>
+          <View style={styles.card}>
+            <Row
+              icon="fork.knife"
+              iconBg={C.accentLight}
+              iconColor={C.accent}
+              label={t.settings.dietAndEquipment ?? 'Diet & Equipment'}
+              onPress={() => router.push('/preferences')}
+              C={C}
+            />
           </View>
         </View>
-      </View>
-      */}
 
-      {/* Support */}
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>{t.settings.support}</Text>
-        <View style={styles.card}>
-          <TouchableOpacity style={styles.linkRow} onPress={handleRate} activeOpacity={0.7}>
-            <View style={[styles.rowIcon, { backgroundColor: 'rgba(255,214,0,0.15)' }]}>
-              <IconSymbol name="star.fill" size={16} color={C.yellow} />
-            </View>
-            <Text style={styles.rowLabel}>{t.settings.rateApp}</Text>
-            <IconSymbol name="chevron.right" size={14} color={C.text3} />
-          </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <TouchableOpacity style={styles.linkRow} onPress={handleShare} activeOpacity={0.7}>
-            <View style={[styles.rowIcon, { backgroundColor: 'rgba(48,209,88,0.15)' }]}>
-              <IconSymbol name="square.and.arrow.up" size={16} color={C.green} />
-            </View>
-            <Text style={styles.rowLabel}>{t.settings.shareApp}</Text>
-            <IconSymbol name="chevron.right" size={14} color={C.text3} />
-          </TouchableOpacity>
+        {/* Support */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>{t.settings.support}</Text>
+          <View style={styles.card}>
+            <Row
+              icon="star.fill"
+              iconBg="rgba(255,214,0,0.15)"
+              iconColor={C.yellow}
+              label={t.settings.rateApp}
+              onPress={handleRate}
+              C={C}
+            />
+            <View style={styles.divider} />
+            <Row
+              icon="square.and.arrow.up"
+              iconBg="rgba(48,209,88,0.15)"
+              iconColor={C.green}
+              label={t.settings.shareApp}
+              onPress={handleShare}
+              C={C}
+            />
+          </View>
         </View>
-      </View>
 
-      {/* Legal */}
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>{t.settings.legal}</Text>
-        <View style={styles.card}>
-          <TouchableOpacity
-            style={styles.linkRow}
-            onPress={() => openURL(PRIVACY_POLICY_URL)}
-            activeOpacity={0.7}>
-            <View style={[styles.rowIcon, { backgroundColor: 'rgba(10,132,255,0.15)' }]}>
-              <IconSymbol name="lock.fill" size={16} color="#0A84FF" />
-            </View>
-            <Text style={styles.rowLabel}>{t.settings.privacyPolicy}</Text>
-            <IconSymbol name="chevron.right" size={14} color={C.text3} />
-          </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <TouchableOpacity
-            style={styles.linkRow}
-            onPress={() => openURL(TERMS_URL)}
-            activeOpacity={0.7}>
-            <View style={[styles.rowIcon, { backgroundColor: 'rgba(255,107,43,0.15)' }]}>
-              <IconSymbol name="doc.text.fill" size={16} color={C.accent} />
-            </View>
-            <Text style={styles.rowLabel}>{t.settings.termsOfUse}</Text>
-            <IconSymbol name="chevron.right" size={14} color={C.text3} />
-          </TouchableOpacity>
+        {/* Legal */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>{t.settings.legal}</Text>
+          <View style={styles.card}>
+            <Row
+              icon="lock.fill"
+              iconBg="rgba(10,132,255,0.15)"
+              iconColor="#0A84FF"
+              label={t.settings.privacyPolicy}
+              onPress={() => openURL(PRIVACY_POLICY_URL)}
+              C={C}
+            />
+            <View style={styles.divider} />
+            <Row
+              icon="doc.text.fill"
+              iconBg={C.accentLight}
+              iconColor={C.accent}
+              label={t.settings.termsOfUse}
+              onPress={() => openURL(TERMS_URL)}
+              C={C}
+            />
+          </View>
         </View>
-      </View>
 
-        </View>{/* inner */}
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+function Row({
+  icon,
+  iconBg,
+  iconColor,
+  label,
+  onPress,
+  C,
+}: {
+  icon: string;
+  iconBg: string;
+  iconColor: string;
+  label: string;
+  onPress: () => void;
+  C: ColorScheme;
+}) {
+  return (
+    <TouchableOpacity style={rowStyles.row} onPress={onPress} activeOpacity={0.7}>
+      <View style={[rowStyles.iconWrap, { backgroundColor: iconBg }]}>
+        <IconSymbol name={icon as any} size={IS_TABLET ? 18 : 16} color={iconColor} />
+      </View>
+      <Text style={[rowStyles.label, { color: C.text }]}>{label}</Text>
+      <IconSymbol name="chevron.right" size={14} color={C.text3} />
+    </TouchableOpacity>
+  );
+}
+
+const rowStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: IS_TABLET ? 16 : 13,
+  },
+  iconWrap: {
+    width: IS_TABLET ? 42 : 34,
+    height: IS_TABLET ? 42 : 34,
+    borderRadius: IS_TABLET ? 13 : 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  label: {
+    flex: 1,
+    fontSize: IS_TABLET ? 18 : 16,
+    fontWeight: '600',
+  },
+});
 
 function createStyles(C: ColorScheme) {
   return StyleSheet.create({
@@ -165,17 +187,12 @@ function createStyles(C: ColorScheme) {
       flex: 1,
       backgroundColor: C.bg,
     },
-    scroll: {
-      flex: 1,
-    },
-    inner: {
-      maxWidth: CONTENT_MAX_W,
-      alignSelf: 'center',
-      width: '100%',
-    },
     headerWrap: {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: C.border,
+      maxWidth: CONTENT_MAX_W,
+      alignSelf: 'center',
+      width: '100%',
     },
     header: {
       paddingHorizontal: IS_TABLET ? 24 : 20,
@@ -187,111 +204,42 @@ function createStyles(C: ColorScheme) {
       color: C.text,
       letterSpacing: -0.5,
     },
+    scroll: {
+      flex: 1,
+    },
+    scrollContent: {
+      maxWidth: CONTENT_MAX_W,
+      alignSelf: 'center',
+      width: '100%',
+      paddingTop: 8,
+    },
     section: {
-      marginTop: 28,
+      marginTop: 24,
       paddingHorizontal: IS_TABLET ? 24 : 16,
     },
     sectionLabel: {
-      fontSize: IS_TABLET ? 13 : 11,
+      fontSize: IS_TABLET ? 12 : 11,
       fontWeight: '700',
       color: C.text3,
-      letterSpacing: 1.2,
+      letterSpacing: 1.1,
+      textTransform: 'uppercase',
       marginBottom: 8,
       marginLeft: 4,
     },
     card: {
       backgroundColor: C.surface,
       borderRadius: 18,
-      borderWidth: 1,
-      borderColor: C.border,
       paddingHorizontal: IS_TABLET ? 20 : 16,
-      paddingVertical: IS_TABLET ? 4 : 6,
-    },
-    linkRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      paddingVertical: IS_TABLET ? 14 : 10,
-    },
-    langHeaderRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      paddingTop: 10,
-      paddingBottom: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.06,
+      shadowRadius: 8,
+      elevation: 2,
     },
     divider: {
       height: StyleSheet.hairlineWidth,
       backgroundColor: C.border,
-      marginLeft: 44,
-    },
-    rowIcon: {
-      width: IS_TABLET ? 40 : 32,
-      height: IS_TABLET ? 40 : 32,
-      borderRadius: IS_TABLET ? 13 : 10,
-      backgroundColor: C.accentLight,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    rowLabel: {
-      fontSize: IS_TABLET ? 19 : 16,
-      fontWeight: '600',
-      color: C.text,
-      flex: 1,
-    },
-    segmented: {
-      flexDirection: 'row',
-      backgroundColor: C.surface2,
-      borderRadius: 12,
-      padding: 3,
-      marginBottom: 6,
-    },
-    segment: {
-      flex: 1,
-      paddingVertical: IS_TABLET ? 12 : 9,
-      borderRadius: 10,
-      alignItems: 'center',
-    },
-    segmentActive: {
-      backgroundColor: C.accent,
-      shadowColor: C.accent,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
-    },
-    segmentText: {
-      fontSize: IS_TABLET ? 16 : 14,
-      fontWeight: '600',
-      color: C.text3,
-    },
-    segmentTextActive: {
-      color: C.white,
-    },
-    langGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
-      paddingBottom: 10,
-    },
-    langChip: {
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      borderRadius: 20,
-      backgroundColor: C.surface2,
-      borderWidth: 1,
-      borderColor: C.border,
-    },
-    langChipActive: {
-      backgroundColor: C.accent,
-      borderColor: C.accent,
-    },
-    langChipText: {
-      fontSize: 13,
-      fontWeight: '600',
-      color: C.text2,
-    },
-    langChipTextActive: {
-      color: '#fff',
+      marginLeft: IS_TABLET ? 56 : 48,
     },
   });
 }
