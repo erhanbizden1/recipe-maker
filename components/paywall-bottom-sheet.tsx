@@ -1,3 +1,5 @@
+import { useLanguage } from "@/contexts/language";
+import { useUI } from "@/contexts/ui";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -16,6 +18,7 @@ import React, {
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Dimensions,
   Image,
   Keyboard,
@@ -29,8 +32,6 @@ import {
   View,
 } from "react-native";
 import Purchases, { PurchasesPackage } from "react-native-purchases";
-import { useLanguage } from "@/contexts/language";
-import { useUI } from "@/contexts/ui";
 
 const BG = require("@/assets/images/paywall.png");
 const { width, height } = Dimensions.get("window");
@@ -55,7 +56,11 @@ const PREMIUM_FEATURES = [
     key: "history",
     title: "Unlimited Recipe History",
   },
-  { icon: "nutrition-outline", key: "support", title: "Nutrition & Calorie Analysis" },
+  {
+    icon: "nutrition-outline",
+    key: "support",
+    title: "Nutrition & Calorie Analysis",
+  },
 ];
 
 // ── CloseButton ────────────────────────────────────────────────────────────────
@@ -72,7 +77,7 @@ const CloseButton = ({ onPress }: { onPress: () => void }) => (
       <Ionicons
         name="close"
         size={isTablet ? 32 : 24}
-        color="rgba(255,255,255,0.7)"
+        color="#FFFFFF"
       />
     </TouchableOpacity>
   </View>
@@ -125,6 +130,9 @@ const PaywallContent = ({
   const [selectedPackage, setSelectedPackage] =
     useState<PurchasesPackage | null>(null);
   const [freeTrialEnabled, setFreeTrialEnabled] = useState(false);
+  const ctaTextOpacity = useRef(new Animated.Value(1)).current;
+  const [displayCtaText, setDisplayCtaText] = useState("");
+  const packageScales = useRef<{ [key: string]: Animated.Value }>({});
 
   const handleClosePress = () => {
     if (purchasing) {
@@ -185,8 +193,33 @@ const PaywallContent = ({
       return `${t.paywall.cta.switchTo} ${getPackageTypeText(selectedPackage.packageType)}`;
     if (selectedPackage.packageType === "WEEKLY" && hasFreeTrial())
       return t.paywall.cta.tryFree;
-    if (selectedPackage.packageType === "WEEKLY") return t.paywall.cta.subscribeNow;
+    if (selectedPackage.packageType === "WEEKLY")
+      return t.paywall.cta.subscribeNow;
     return t.paywall.cta.unlockNow;
+  };
+
+  useEffect(() => {
+    const newText = getCtaButtonText();
+    Animated.timing(ctaTextOpacity, {
+      toValue: 0,
+      duration: 100,
+      useNativeDriver: true,
+    }).start(() => {
+      setDisplayCtaText(newText);
+      Animated.timing(ctaTextOpacity, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }).start();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPackage, purchasing]);
+
+  const getPackageScale = (identifier: string) => {
+    if (!packageScales.current[identifier]) {
+      packageScales.current[identifier] = new Animated.Value(1);
+    }
+    return packageScales.current[identifier];
   };
 
   useEffect(() => {
@@ -256,7 +289,9 @@ const PaywallContent = ({
     if (isPremium) {
       Alert.alert(
         t.paywall.alerts.changePlan,
-        t.paywall.alerts.switchConfirm(getPackageTypeText(selectedPackage.packageType)),
+        t.paywall.alerts.switchConfirm(
+          getPackageTypeText(selectedPackage.packageType),
+        ),
         [
           { text: t.paywall.alerts.cancel, style: "cancel" },
           { text: t.paywall.alerts.switch, onPress: performPurchase },
@@ -401,7 +436,7 @@ const PaywallContent = ({
   return (
     <View style={styles.container}>
       <StatusBar
-        barStyle="light-content"
+        barStyle="dark-content"
         backgroundColor="transparent"
         translucent
       />
@@ -415,14 +450,17 @@ const PaywallContent = ({
       >
         <Image source={BG} style={styles.heroImage} resizeMode="cover" />
         <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.75)", "#000000"]}
+          colors={["transparent", "rgba(255,255,255,.9)", "#FFFFFF"]}
           style={styles.heroGradient}
           start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
+          end={{ x: 0, y: 1.6 }}
         />
       </View>
 
-      <LoadingOverlay visible={purchasing} loadingText={t.paywall.loadingText} />
+      <LoadingOverlay
+        visible={purchasing}
+        loadingText={t.paywall.loadingText}
+      />
       <CloseButton onPress={handleClosePress} />
 
       <ScrollView
@@ -478,7 +516,11 @@ const PaywallContent = ({
                     isTablet && styles.featureTitleTablet,
                   ]}
                 >
-                  {t.paywall.features[feature.key as keyof typeof t.paywall.features]}
+                  {
+                    t.paywall.features[
+                      feature.key as keyof typeof t.paywall.features
+                    ]
+                  }
                 </Text>
               </View>
             ))}
@@ -503,8 +545,11 @@ const PaywallContent = ({
               const isSelected = selectedPackage?.identifier === pkg.identifier;
               const savingPercentage = calculateSavingPercentage(pkg);
               return (
-                <TouchableOpacity
+                <Animated.View
                   key={pkg.identifier || `package-${pkg.packageType}-${index}`}
+                  style={{ transform: [{ scale: getPackageScale(pkg.identifier) }] }}
+                >
+                <TouchableOpacity
                   style={[
                     styles.packageCard,
                     isSelected && styles.selectedPackage,
@@ -512,6 +557,11 @@ const PaywallContent = ({
                   ]}
                   onPress={() => {
                     if (purchasing) return;
+                    const scale = getPackageScale(pkg.identifier);
+                    Animated.sequence([
+                      Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, speed: 50, bounciness: 0 }),
+                      Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 8 }),
+                    ]).start();
                     setSelectedPackage(pkg);
                     if (pkg.packageType !== "WEEKLY") {
                       setFreeTrialEnabled(false);
@@ -617,6 +667,7 @@ const PaywallContent = ({
                     </View>
                   </View>
                 </TouchableOpacity>
+                </Animated.View>
               );
             })
           )}
@@ -641,14 +692,16 @@ const PaywallContent = ({
             end={{ x: 1, y: 0 }}
             style={[styles.ctaButton, isTablet && styles.ctaButtonTablet]}
           >
-            <Text
-              style={[
-                styles.ctaButtonText,
-                isTablet && styles.ctaButtonTextTablet,
-              ]}
-            >
-              {getCtaButtonText()}
-            </Text>
+            <Animated.View style={{ opacity: ctaTextOpacity }}>
+              <Text
+                style={[
+                  styles.ctaButtonText,
+                  isTablet && styles.ctaButtonTextTablet,
+                ]}
+              >
+                {displayCtaText}
+              </Text>
+            </Animated.View>
           </LinearGradient>
         </TouchableOpacity>
 
@@ -813,7 +866,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     minHeight: height,
-    backgroundColor: "#000000",
+    backgroundColor: "#FFFFFF",
   },
   heroImageContainer: {
     position: "absolute",
@@ -847,22 +900,22 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   loadingContainer: {
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#FFFFFF",
     padding: 30,
     borderRadius: 20,
     alignItems: "center",
     minWidth: 150,
-    shadowColor: ACCENT,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 8,
     borderWidth: 1,
-    borderColor: "rgba(255,107,43,0.2)",
+    borderColor: "#E5E5EA",
   },
   loadingContainerTablet: { padding: 50, minWidth: 250, borderRadius: 28 },
   loadingText: {
-    color: "#FFFFFF",
+    color: "#1C1C1E",
     fontSize: 16,
     fontWeight: "600",
     marginTop: 16,
@@ -901,14 +954,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 8,
     paddingTop: 20,
-    textShadowColor: "rgba(0,0,0,0.5)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
   },
   titleTablet: { fontSize: 62, marginBottom: 12, paddingTop: 50 },
   subtitle: {
     fontSize: 16,
-    color: "rgba(255,255,255,0.7)",
+    color: "#FFFFFF",
     textAlign: "center",
     fontWeight: "500",
   },
@@ -931,7 +981,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "rgba(255,107,43,0.2)",
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -946,24 +996,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: "#FFFFFF",
-    textShadowColor: "rgba(0,0,0,0.5)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
   featureTitleTablet: { fontSize: 26 },
   packagesSection: { paddingHorizontal: 20, marginBottom: 20 },
   packagesSectionTablet: { paddingHorizontal: 0, marginBottom: 30 },
   packageCard: {
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "#F2F2F7",
     borderRadius: 16,
     padding: 16,
     paddingVertical: 16,
     marginBottom: 12,
     borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.12)",
+    borderColor: "#E5E5EA",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
   },
@@ -991,9 +1038,9 @@ const styles = StyleSheet.create({
   },
   packageLeft: { flex: 1, marginRight: 8 },
   packageTitle: {
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#1C1C1E",
     marginBottom: 8,
   },
   packageTitleTablet: { fontSize: 26, marginBottom: 8 },
@@ -1002,12 +1049,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexWrap: "wrap",
   },
-  packageDescription: { fontSize: 15, color: "rgba(255,255,255,0.5)" },
-  packageDescriptionTop: { fontSize: 14, color: "rgba(255,255,255,0.5)" },
+  packageDescription: { fontSize: 16, color: "#636366" },
+  packageDescriptionTop: { fontSize: 16, color: "#636366" },
   packageDescriptionTablet: { fontSize: 20 },
   packagePriceInline: {
-    fontSize: 16,
-    color: "#FFFFFF",
+    fontSize: 18,
+    color: "#1C1C1E",
     fontWeight: "700",
     marginRight: 6,
   },
@@ -1031,7 +1078,7 @@ const styles = StyleSheet.create({
   },
   savingTextInline: {
     color: "#ffffff",
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "700",
     letterSpacing: 0.3,
   },
@@ -1041,7 +1088,7 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.25)",
+    borderColor: "#C7C7CC",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "transparent",
@@ -1058,16 +1105,16 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#000000",
+    backgroundColor: "#FFFFFF",
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: Platform.OS === "ios" ? 34 : 20,
     borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.08)",
+    borderTopColor: "#E5E5EA",
     zIndex: 1000,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 10,
   },
@@ -1104,7 +1151,7 @@ const styles = StyleSheet.create({
   ctaButtonTablet: { paddingVertical: 28 },
   ctaButtonText: {
     color: "#ffffff",
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
@@ -1116,7 +1163,7 @@ const styles = StyleSheet.create({
   },
   legalLinkText: {
     fontSize: 12,
-    color: "rgba(255,255,255,0.35)",
+    color: "#AEAEB2",
     fontWeight: "500",
   },
   legalLinkTextTablet: { fontSize: 16, fontWeight: "600" },
@@ -1124,10 +1171,10 @@ const styles = StyleSheet.create({
   linkSeparator: {
     width: 1,
     height: 10,
-    backgroundColor: "rgba(255,255,255,0.15)",
+    backgroundColor: "#E5E5EA",
     marginHorizontal: 10,
   },
   linkSeparatorTablet: { width: 2, height: 14, marginHorizontal: 16 },
-  priceText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
+  priceText: { color: "#1C1C1E", fontSize: 18, fontWeight: "700" },
   priceTextTablet: { fontSize: 20 },
 });

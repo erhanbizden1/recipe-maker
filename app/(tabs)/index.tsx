@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { StatusBar, setStatusBarStyle } from 'expo-status-bar';
-import React, { useCallback } from 'react';
+import { setStatusBarStyle } from 'expo-status-bar';
+import React, { useCallback, useEffect } from 'react';
 import {
   Dimensions,
   Image,
@@ -28,13 +28,17 @@ export default function HomeScreen() {
   const { openPaywall, isPremium } = useUI();
   const { t } = useLanguage();
 
+  useEffect(() => {
+    setStatusBarStyle('light');
+  }, []);
+
   useFocusEffect(useCallback(() => {
     setStatusBarStyle('light');
   }, []));
 
   return (
     <View style={styles.root}>
-      <StatusBar style="light" />
+
       {/* Full-screen bg image — extends below content area into tab bar region */}
       <Image
         source={BG}

@@ -15,12 +15,14 @@ export interface HistoryEntry {
 
 export function useRecipeHistory() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadHistory();
   }, []);
 
   async function loadHistory() {
+    setLoading(true);
     try {
       const deviceId = await getDeviceId();
       const q = query(
@@ -44,6 +46,8 @@ export function useRecipeHistory() {
       setHistory(sorted);
     } catch (err) {
       console.warn('[RecipeHistory] Failed to load from Firestore:', err);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -109,5 +113,5 @@ export function useRecipeHistory() {
     loadHistory();
   }, []);
 
-  return { history, addEntry, removeEntry, refresh };
+  return { history, loading, addEntry, removeEntry, refresh };
 }

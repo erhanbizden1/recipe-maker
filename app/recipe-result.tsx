@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
+  Dimensions,
   Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -47,6 +48,7 @@ export default function RecipeResultScreen() {
   const { openPaywall, showRatingPrompt } = useUI();
   const styles = useMemo(() => createStyles(C), [C]);
 
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(
     cachedResult ? (JSON.parse(cachedResult) as AnalysisResult) : null
   );
@@ -55,12 +57,15 @@ export default function RecipeResultScreen() {
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [currentPhotoIdx, setCurrentPhotoIdx] = useState(0);
   const spinAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
   const msgFadeAnim = useRef(new Animated.Value(1)).current;
   const photoFadeAnim = useRef(new Animated.Value(1)).current;
   const scanAnim = useRef(new Animated.Value(0)).current;
   const msgInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const photoInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const scrollViewRef = useRef<any>(null);
+  const cardRefs = useRef<(View | null)[]>([]);
+  const scrollOffset = useRef(0);
 
   const imageUris: string[] = photosParam ? JSON.parse(photosParam) : [];
   const isPhotoMode = imageUris.length > 0;
@@ -264,11 +269,12 @@ export default function RecipeResultScreen() {
       </View>
 
       <Animated.ScrollView
+        ref={scrollViewRef}
         style={{ opacity: fadeAnim }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: 16 }]}
-        onScroll={handleScroll}
-        scrollEventThrottle={200}>
+        onScroll={(e) => { scrollOffset.current = e.nativeEvent.contentOffset.y; handleScroll(e); }}
+        scrollEventThrottle={16}>
 
         {result.detectedIngredients.length > 0 && (
           <View style={styles.ingredientsSection}>
@@ -288,7 +294,24 @@ export default function RecipeResultScreen() {
         <Text style={styles.recipesHeading}>{t.recipeResult.suggestedRecipes}</Text>
 
         {result.recipes.map((recipe, i) => (
-          <RecipeCard key={i} recipe={recipe} />
+          <View key={i} ref={(r) => { cardRefs.current[i] = r; }}>
+            <RecipeCard
+              recipe={recipe}
+              expanded={expandedIndex === i}
+              onToggle={() => {
+                const opening = expandedIndex !== i;
+                setExpandedIndex(opening ? i : null);
+                if (opening) {
+                  setTimeout(() => {
+                    cardRefs.current[i]?.measure((_x, _y, _w, _h, _px, pageY) => {
+                      const target = scrollOffset.current + pageY - insets.top - 80;
+                      scrollViewRef.current?.scrollTo({ y: Math.max(0, target), animated: true });
+                    });
+                  }, 320);
+                }
+              }}
+            />
+          </View>
         ))}
       </Animated.ScrollView>
 
