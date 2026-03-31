@@ -1,11 +1,22 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import RecipeCard from "@/components/recipe-card";
+import { ColorScheme } from "@/constants/colors";
+import { InterFont } from "@/constants/theme";
+import { useLanguage } from "@/contexts/language";
+import { useTheme } from "@/contexts/theme";
+import { useUI } from "@/contexts/ui";
+import { useRecipeHistory } from "@/hooks/use-recipe-history";
+import { AnalysisResult, analyzeIngredients } from "@/lib/claude";
+import { getDeviceId } from "@/lib/device-id";
+import { db } from "@/lib/firebase";
+import { CONTENT_MAX_W, IS_TABLET } from "@/lib/responsive";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { doc, getDoc, increment, setDoc } from "firebase/firestore";
+import LottieView from "lottie-react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
-  Dimensions,
-  Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Platform,
@@ -14,26 +25,19 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Purchases from 'react-native-purchases';
-import RecipeCard from '@/components/recipe-card';
-import { ColorScheme } from '@/constants/colors';
-import { useLanguage } from '@/contexts/language';
-import { useTheme } from '@/contexts/theme';
-import { useUI } from '@/contexts/ui';
-import { analyzeIngredients, AnalysisResult } from '@/lib/claude';
-import { db } from '@/lib/firebase';
-import { getDeviceId } from '@/lib/device-id';
-import { useRecipeHistory } from '@/hooks/use-recipe-history';
-import { CONTENT_MAX_W, IS_TABLET } from '@/lib/responsive';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+} from "react-native";
+import Purchases from "react-native-purchases";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const FREE_LIMIT = 1;
-const PREMIUM_KEYS = ['premium', 'pro', 'unlimited', 'full_access'];
+const PREMIUM_KEYS = ["premium", "pro", "unlimited", "full_access"];
 
 export default function RecipeResultScreen() {
-  const { photos: photosParam, text, thumbnail, cachedResult } = useLocalSearchParams<{
+  const {
+    photos: photosParam,
+    text,
+    thumbnail,
+    cachedResult,
+  } = useLocalSearchParams<{
     photos: string;
     text: string;
     thumbnail: string;
@@ -45,18 +49,18 @@ export default function RecipeResultScreen() {
   const { addEntry } = useRecipeHistory();
   const { colors: C } = useTheme();
   const { t, language } = useLanguage();
-  const { openPaywall, showRatingPrompt } = useUI();
+  const { openPaywall, showRatingPrompt, freeLimit, refreshUsage } = useUI();
   const styles = useMemo(() => createStyles(C), [C]);
 
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(
-    cachedResult ? (JSON.parse(cachedResult) as AnalysisResult) : null
+    cachedResult ? (JSON.parse(cachedResult) as AnalysisResult) : null,
   );
   const [error, setError] = useState<string | null>(null);
   const hasTriggeredRating = useRef(false);
+  const hasAnalyzed = useRef(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [currentPhotoIdx, setCurrentPhotoIdx] = useState(0);
-  const spinAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const msgFadeAnim = useRef(new Animated.Value(1)).current;
   const photoFadeAnim = useRef(new Animated.Value(1)).current;
@@ -75,46 +79,71 @@ export default function RecipeResultScreen() {
 
   useEffect(() => {
     if (cachedResult) {
-      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start();
       return;
     }
-    startLoadingAnimation();
+    if (hasAnalyzed.current) return;
+    hasAnalyzed.current = true;
     gateAndAnalyze();
     return () => {
       if (msgInterval.current) clearInterval(msgInterval.current);
       if (photoInterval.current) clearInterval(photoInterval.current);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function startLoadingAnimation() {
     let idx = 0;
     msgInterval.current = setInterval(() => {
-      Animated.timing(msgFadeAnim, { toValue: 0, duration: 250, useNativeDriver: true }).start(() => {
+      Animated.timing(msgFadeAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }).start(() => {
         idx = (idx + 1) % LOADING_MESSAGES.length;
         setLoadingMsgIdx(idx);
-        Animated.timing(msgFadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }).start();
+        Animated.timing(msgFadeAnim, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }).start();
       });
     }, 2200);
 
     Animated.loop(
-      Animated.timing(spinAnim, { toValue: 1, duration: 2000, useNativeDriver: true })
-    ).start();
-
-    Animated.loop(
       Animated.sequence([
-        Animated.timing(scanAnim, { toValue: 1, duration: 1800, useNativeDriver: true }),
-        Animated.timing(scanAnim, { toValue: 0, duration: 0, useNativeDriver: true }),
-      ])
+        Animated.timing(scanAnim, {
+          toValue: 1,
+          duration: 1800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scanAnim, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ]),
     ).start();
 
     if (imageUris.length > 1) {
       let photoIdx = 0;
       photoInterval.current = setInterval(() => {
-        Animated.timing(photoFadeAnim, { toValue: 0, duration: 400, useNativeDriver: true }).start(() => {
+        Animated.timing(photoFadeAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }).start(() => {
           photoIdx = (photoIdx + 1) % imageUris.length;
           setCurrentPhotoIdx(photoIdx);
-          Animated.timing(photoFadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+          Animated.timing(photoFadeAnim, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }).start();
         });
       }, 2000);
     }
@@ -123,7 +152,7 @@ export default function RecipeResultScreen() {
   async function gateAndAnalyze() {
     // Check premium status via RevenueCat (cached, fast)
     let hasPremium = false;
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === "ios") {
       try {
         const info = await Purchases.getCustomerInfo();
         hasPremium =
@@ -136,11 +165,11 @@ export default function RecipeResultScreen() {
     if (!hasPremium) {
       try {
         const deviceId = await getDeviceId();
-        const userDoc = await getDoc(doc(db, 'users', deviceId));
-        const usageCount = userDoc.exists() ? (userDoc.data().usageCount ?? 0) : 0;
-        if (usageCount >= FREE_LIMIT) {
-          if (msgInterval.current) clearInterval(msgInterval.current);
-          if (photoInterval.current) clearInterval(photoInterval.current);
+        const userDoc = await getDoc(doc(db, "users", deviceId));
+        const usageCount = userDoc.exists()
+          ? (userDoc.data().usageCount ?? 0)
+          : 0;
+        if (usageCount >= freeLimit) {
           router.back();
           setTimeout(() => openPaywall(), 300);
           return;
@@ -148,14 +177,22 @@ export default function RecipeResultScreen() {
       } catch {}
     }
 
-    await startAnalysis();
+    startLoadingAnimation();
+    await startAnalysis(hasPremium);
   }
 
-  async function startAnalysis() {
+  async function startAnalysis(hasPremium = false) {
     try {
-      const prefsRaw = await AsyncStorage.getItem('survey_prefs');
+      const prefsRaw = await AsyncStorage.getItem("survey_prefs");
       const prefs = prefsRaw ? JSON.parse(prefsRaw) : {};
-      const analysisResult = await analyzeIngredients(imageUris, text || undefined, undefined, language, prefs.diet, prefs.equipment);
+      const analysisResult = await analyzeIngredients(
+        imageUris,
+        text || undefined,
+        undefined,
+        language,
+        prefs.diet,
+        prefs.equipment,
+      );
       if (msgInterval.current) clearInterval(msgInterval.current);
       setResult(analysisResult);
       await addEntry({
@@ -164,22 +201,25 @@ export default function RecipeResultScreen() {
         result: analysisResult,
       });
 
+      // Increment usage count only for free users
+      if (!hasPremium) {
+        try {
+          const deviceId = await getDeviceId();
+          const userRef = doc(db, "users", deviceId);
+          await setDoc(userRef, { usageCount: increment(1) }, { merge: true });
+          await refreshUsage();
+        } catch {}
+      }
 
-
-      // Increment usage count (never decremented, even if recipe is deleted)
-      try {
-        const deviceId = await getDeviceId();
-        const userRef = doc(db, 'users', deviceId);
-        const userDoc = await getDoc(userRef);
-        const prev = userDoc.exists() ? (userDoc.data().usageCount ?? 0) : 0;
-        await setDoc(userRef, { usageCount: prev + 1 }, { merge: true });
-      } catch {}
-
-      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
     } catch (err) {
       if (msgInterval.current) clearInterval(msgInterval.current);
       const msg = err instanceof Error ? err.message : String(err);
-      console.error('[RecipeResult] Analysis failed:', msg);
+      console.error("[RecipeResult] Analysis failed:", msg);
       setError(msg);
     }
   }
@@ -192,7 +232,6 @@ export default function RecipeResultScreen() {
     }
   }
 
-  const spin = spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
   if (error) {
     return (
@@ -212,7 +251,10 @@ export default function RecipeResultScreen() {
 
   if (!result) {
     if (isPhotoMode) {
-      const scanY = scanAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 260] });
+      const scanY = scanAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 260],
+      });
       return (
         <View style={[styles.fullCenter, { paddingTop: insets.top }]}>
           <StatusBar style="dark" />
@@ -223,7 +265,9 @@ export default function RecipeResultScreen() {
               style={[styles.photoPreview, { opacity: photoFadeAnim }]}
             />
             {/* Scan line */}
-            <Animated.View style={[styles.scanLine, { transform: [{ translateY: scanY }] }]} />
+            <Animated.View
+              style={[styles.scanLine, { transform: [{ translateY: scanY }] }]}
+            />
             {/* Corner brackets */}
             <View style={[styles.corner, styles.cornerTL]} />
             <View style={[styles.corner, styles.cornerTR]} />
@@ -234,7 +278,9 @@ export default function RecipeResultScreen() {
           <Animated.Text style={[styles.loadingMsg, { opacity: msgFadeAnim }]}>
             {LOADING_MESSAGES[loadingMsgIdx]}
           </Animated.Text>
-          <Text style={styles.loadingHint}>{t.recipeResult.photosSelected(imageUris.length)}</Text>
+          <Text style={styles.loadingHint}>
+            {t.recipeResult.photosSelected(imageUris.length)}
+          </Text>
         </View>
       );
     }
@@ -242,12 +288,17 @@ export default function RecipeResultScreen() {
     return (
       <View style={[styles.fullCenter, { paddingTop: insets.top }]}>
         <StatusBar style="dark" />
-        <View style={styles.spinnerWrap}>
-          <Animated.View style={[styles.spinnerRing, { transform: [{ rotate: spin }] }]} />
+        <LottieView
+          source={require("@/assets/animations/restaurant.json")}
+          autoPlay
+          loop
+          style={styles.lottie}
+        />
+        <View style={styles.loadingMsgWrap}>
+          <Animated.Text style={[styles.loadingMsg, { opacity: msgFadeAnim }]}>
+            {LOADING_MESSAGES[loadingMsgIdx]}
+          </Animated.Text>
         </View>
-        <Animated.Text style={[styles.loadingMsg, { opacity: msgFadeAnim }]}>
-          {LOADING_MESSAGES[loadingMsgIdx]}
-        </Animated.Text>
       </View>
     );
   }
@@ -259,7 +310,8 @@ export default function RecipeResultScreen() {
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backCircle}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
           <Text style={styles.backIcon}>‹</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t.recipeResult.recipes}</Text>
@@ -273,12 +325,17 @@ export default function RecipeResultScreen() {
         style={{ opacity: fadeAnim }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: 16 }]}
-        onScroll={(e) => { scrollOffset.current = e.nativeEvent.contentOffset.y; handleScroll(e); }}
-        scrollEventThrottle={16}>
-
+        onScroll={(e) => {
+          scrollOffset.current = e.nativeEvent.contentOffset.y;
+          handleScroll(e);
+        }}
+        scrollEventThrottle={16}
+      >
         {result.detectedIngredients.length > 0 && (
           <View style={styles.ingredientsSection}>
-            <Text style={styles.sectionLabel}>{t.recipeResult.detectedIngredients}</Text>
+            <Text style={styles.sectionLabel}>
+              {t.recipeResult.detectedIngredients}
+            </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.tagRow}>
                 {result.detectedIngredients.map((ing, i) => (
@@ -291,10 +348,17 @@ export default function RecipeResultScreen() {
           </View>
         )}
 
-        <Text style={styles.recipesHeading}>{t.recipeResult.suggestedRecipes}</Text>
+        <Text style={styles.recipesHeading}>
+          {t.recipeResult.suggestedRecipes}
+        </Text>
 
         {result.recipes.map((recipe, i) => (
-          <View key={i} ref={(r) => { cardRefs.current[i] = r; }}>
+          <View
+            key={i}
+            ref={(r) => {
+              cardRefs.current[i] = r;
+            }}
+          >
             <RecipeCard
               recipe={recipe}
               expanded={expandedIndex === i}
@@ -303,10 +367,16 @@ export default function RecipeResultScreen() {
                 setExpandedIndex(opening ? i : null);
                 if (opening) {
                   setTimeout(() => {
-                    cardRefs.current[i]?.measure((_x, _y, _w, _h, _px, pageY) => {
-                      const target = scrollOffset.current + pageY - insets.top - 80;
-                      scrollViewRef.current?.scrollTo({ y: Math.max(0, target), animated: true });
-                    });
+                    cardRefs.current[i]?.measure(
+                      (_x, _y, _w, _h, _px, pageY) => {
+                        const target =
+                          scrollOffset.current + pageY - insets.top - 80;
+                        scrollViewRef.current?.scrollTo({
+                          y: Math.max(0, target),
+                          animated: true,
+                        });
+                      },
+                    );
                   }, 320);
                 }
               }}
@@ -316,17 +386,22 @@ export default function RecipeResultScreen() {
       </Animated.ScrollView>
 
       {/* Sticky bottom button */}
-      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+      <View
+        style={[
+          styles.bottomBar,
+          { paddingBottom: Math.max(insets.bottom, 16) },
+        ]}
+      >
         <View style={styles.bottomBarInner}>
           <TouchableOpacity
             style={styles.newSearchBtn}
-            onPress={() => router.replace('/')}
-            activeOpacity={0.85}>
+            onPress={() => router.replace("/")}
+            activeOpacity={0.85}
+          >
             <Text style={styles.newSearchText}>{t.recipeResult.newSearch}</Text>
           </TouchableOpacity>
         </View>
       </View>
-
     </View>
   );
 }
@@ -340,55 +415,48 @@ function createStyles(C: ColorScheme) {
     fullCenter: {
       flex: 1,
       backgroundColor: C.bg,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       padding: IS_TABLET ? 80 : 40,
     },
-    spinnerWrap: {
-      width: IS_TABLET ? 100 : 72,
-      height: IS_TABLET ? 100 : 72,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 40,
+    lottie: {
+      width: IS_TABLET ? 140 : 280,
+      height: IS_TABLET ? 140 : 280,
+      marginBottom: 12,
     },
-    spinnerRing: {
-      position: 'absolute',
-      width: IS_TABLET ? 100 : 72,
-      height: IS_TABLET ? 100 : 72,
-      borderRadius: IS_TABLET ? 50 : 36,
-      borderWidth: IS_TABLET ? 4 : 3,
-      borderColor: C.border,
-      borderTopColor: C.accent,
-      borderRightColor: C.accent + '60',
+    loadingMsgWrap: {
+      alignItems: "center",
     },
     loadingMsg: {
       fontSize: IS_TABLET ? 20 : 17,
-      fontWeight: '600',
+      fontFamily: InterFont.semiBold,
       color: C.text,
-      textAlign: 'center',
+      textAlign: "center",
       marginBottom: 10,
+      marginTop: -50,
       letterSpacing: -0.2,
       maxWidth: 480,
     },
     loadingHint: {
       fontSize: 13,
+      fontFamily: InterFont.regular,
       color: C.text3,
-      textAlign: 'center',
+      textAlign: "center",
     },
     photoWrap: {
       width: IS_TABLET ? 360 : 260,
       height: IS_TABLET ? 360 : 260,
       borderRadius: 24,
-      overflow: 'hidden',
+      overflow: "hidden",
       marginBottom: 40,
-      position: 'relative',
+      position: "relative",
     },
     photoPreview: {
-      width: '100%',
-      height: '100%',
+      width: "100%",
+      height: "100%",
     },
     scanLine: {
-      position: 'absolute',
+      position: "absolute",
       left: 0,
       right: 0,
       height: 2,
@@ -399,7 +467,7 @@ function createStyles(C: ColorScheme) {
       shadowRadius: 8,
     },
     corner: {
-      position: 'absolute',
+      position: "absolute",
       width: 22,
       height: 22,
       borderColor: C.accent,
@@ -437,20 +505,21 @@ function createStyles(C: ColorScheme) {
       height: 80,
       borderRadius: 24,
       backgroundColor: C.surface2,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       marginBottom: 20,
     },
     errorTitle: {
       fontSize: 24,
-      fontWeight: '700',
+      fontFamily: InterFont.bold,
       color: C.text,
       marginBottom: 10,
     },
     errorMsg: {
       fontSize: 14,
+      fontFamily: InterFont.regular,
       color: C.text2,
-      textAlign: 'center',
+      textAlign: "center",
       lineHeight: 21,
       marginBottom: 28,
     },
@@ -462,40 +531,40 @@ function createStyles(C: ColorScheme) {
     },
     backBtnText: {
       color: C.text,
-      fontWeight: '600',
+      fontFamily: InterFont.semiBold,
       fontSize: 15,
     },
     header: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       paddingHorizontal: IS_TABLET ? 24 : 16,
       paddingVertical: 14,
       borderBottomWidth: 1,
       borderBottomColor: C.border,
       maxWidth: CONTENT_MAX_W,
-      alignSelf: 'center',
-      width: '100%',
+      alignSelf: "center",
+      width: "100%",
     },
     backCircle: {
       width: 36,
       height: 36,
       borderRadius: 18,
       backgroundColor: C.surface2,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       marginRight: 12,
     },
     backIcon: {
       fontSize: 22,
       color: C.text,
-      fontWeight: '300',
+      fontFamily: InterFont.regular,
       lineHeight: 26,
       marginTop: -1,
     },
     headerTitle: {
       flex: 1,
       fontSize: IS_TABLET ? 24 : 18,
-      fontWeight: '700',
+      fontFamily: InterFont.bold,
       color: C.text,
     },
     recipeBadge: {
@@ -506,14 +575,14 @@ function createStyles(C: ColorScheme) {
     },
     recipeBadgeText: {
       color: C.accent,
-      fontWeight: '700',
+      fontFamily: InterFont.bold,
       fontSize: 14,
     },
     scroll: {
       paddingTop: 16,
       maxWidth: CONTENT_MAX_W,
-      alignSelf: 'center',
-      width: '100%',
+      alignSelf: "center",
+      width: "100%",
     },
     ingredientsSection: {
       marginHorizontal: IS_TABLET ? 24 : 16,
@@ -521,13 +590,13 @@ function createStyles(C: ColorScheme) {
     },
     sectionLabel: {
       fontSize: IS_TABLET ? 13 : 11,
-      fontWeight: '700',
+      fontFamily: InterFont.bold,
       color: C.text3,
       letterSpacing: 1.2,
       marginBottom: 10,
     },
     tagRow: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: 6,
     },
     tag: {
@@ -539,11 +608,11 @@ function createStyles(C: ColorScheme) {
     tagText: {
       color: C.text2,
       fontSize: IS_TABLET ? 16 : 13,
-      fontWeight: '500',
+      fontFamily: InterFont.medium,
     },
     recipesHeading: {
       fontSize: IS_TABLET ? 24 : 20,
-      fontWeight: '800',
+      fontFamily: InterFont.extraBold,
       color: C.text,
       marginHorizontal: IS_TABLET ? 24 : 16,
       marginBottom: 12,
@@ -558,23 +627,23 @@ function createStyles(C: ColorScheme) {
     bottomBarInner: {
       paddingHorizontal: IS_TABLET ? 28 : 16,
       maxWidth: CONTENT_MAX_W,
-      alignSelf: 'center',
-      width: '100%',
+      alignSelf: "center",
+      width: "100%",
     },
     newSearchBtn: {
       backgroundColor: C.accent,
       borderRadius: 18,
       paddingVertical: IS_TABLET ? 22 : 18,
-      alignItems: 'center',
+      alignItems: "center",
       shadowColor: C.accent,
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.4,
       shadowRadius: 16,
     },
     newSearchText: {
-      color: '#fff',
+      color: "#fff",
       fontSize: IS_TABLET ? 20 : 17,
-      fontWeight: '700',
+      fontFamily: InterFont.bold,
       letterSpacing: 0.3,
     },
   });

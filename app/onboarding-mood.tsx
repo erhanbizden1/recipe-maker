@@ -1,5 +1,6 @@
+import * as Haptics from "expo-haptics";
 import { useLanguage } from "@/contexts/language";
-import { useUI } from "@/contexts/ui";
+
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { CONTENT_MAX_W, IS_TABLET } from "@/lib/responsive";
 import { useRouter } from "expo-router";
@@ -14,7 +15,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 
 // ─── Progress Bar ─────────────────────────────────────────────────────────────
 function ProgressBar({ current, total }: { current: number; total: number }) {
@@ -120,7 +120,7 @@ export default function OnboardingMoodScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { completeOnboarding } = useOnboarding();
-  const { openPaywall } = useUI();
+
   const { t } = useLanguage();
   const o = t.onboarding;
 
@@ -218,6 +218,7 @@ export default function OnboardingMoodScreen() {
     : !!currentSelection;
 
   function handleSelect(id: string) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (step.multiSelect) {
       const prev = (selections[stepIndex] as string[]) ?? [];
       const next = prev.includes(id)
@@ -237,6 +238,7 @@ export default function OnboardingMoodScreen() {
   }
 
   function handleBack() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (stepIndex === 0) {
       router.back();
     } else {
@@ -245,6 +247,7 @@ export default function OnboardingMoodScreen() {
   }
 
   async function handleContinue() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (!isLast) {
       animateStep(stepIndex + 1);
       return;
@@ -255,8 +258,13 @@ export default function OnboardingMoodScreen() {
       equipment: selections[2],
       source: selections[3],
     });
-    router.replace("/(tabs)");
-    setTimeout(() => openPaywall(), 800);
+    router.replace({
+      pathname: "/onboarding-loading",
+      params: {
+        mood: String(selections[0] ?? "0"),
+        diet: String(selections[1] ?? "0"),
+      },
+    });
   }
 
   return (
@@ -368,12 +376,14 @@ const styles = StyleSheet.create({
     lineHeight: IS_TABLET ? 50 : 40,
     marginBottom: 0,
     maxWidth: IS_TABLET ? 480 : 280,
+    fontFamily: "Inter_700Bold",
   },
   description: {
     fontSize: IS_TABLET ? 17 : 15,
     color: "#8E8E93",
     lineHeight: IS_TABLET ? 26 : 22,
     marginLeft: 52,
+    fontFamily: "Inter_400Regular",
   },
 
   // Options
@@ -399,6 +409,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#1C1C1E",
     letterSpacing: -0.2,
+    fontFamily: "Inter_600SemiBold",
   },
   optionLabelSelected: {
     color: "#FFFFFF",
@@ -421,7 +432,9 @@ const styles = StyleSheet.create({
   backText: {
     fontSize: 26,
     color: "#1C1C1E",
-    lineHeight: 32,
+    lineHeight: 26,
+    includeFontPadding: false,
+    textAlignVertical: "center",
   },
   backBtnDisabled: {
     opacity: 0.7,
@@ -456,6 +469,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#FFFFFF",
     letterSpacing: 0.1,
+    fontFamily: "Inter_700Bold",
   },
   continueBtnTextDisabled: {
     color: "#AEAEB2",

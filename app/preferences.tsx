@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ColorScheme } from '@/constants/colors';
+import { InterFont } from '@/constants/theme';
 import { useLanguage } from '@/contexts/language';
 import { useTheme } from '@/contexts/theme';
 import { SURVEY_PREFS_KEY } from '@/hooks/use-onboarding';
@@ -78,7 +79,7 @@ export default function PreferencesScreen() {
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Text style={styles.backIcon}>‹</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t.settings.preferences ?? 'Preferences'}</Text>
+        <Text style={styles.headerTitle}>{t.settings.preferences}</Text>
       </View>
 
       <ScrollView
@@ -153,13 +154,13 @@ function createStyles(C: ColorScheme) {
     backIcon: {
       fontSize: 22,
       color: C.text,
-      fontWeight: '300',
+      fontFamily: InterFont.regular,
       lineHeight: 26,
       marginTop: -1,
     },
     headerTitle: {
       fontSize: IS_TABLET ? 22 : 18,
-      fontWeight: '700',
+      fontFamily: InterFont.bold,
       color: C.text,
     },
     content: {
@@ -175,13 +176,14 @@ function createStyles(C: ColorScheme) {
     },
     sectionTitle: {
       fontSize: IS_TABLET ? 22 : 19,
-      fontWeight: '700',
+      fontFamily: InterFont.bold,
       color: C.text,
       letterSpacing: -0.3,
       marginBottom: 6,
     },
     sectionDesc: {
       fontSize: IS_TABLET ? 15 : 13,
+      fontFamily: InterFont.regular,
       color: C.text3,
       marginBottom: 16,
     },
@@ -204,7 +206,7 @@ function createStyles(C: ColorScheme) {
     },
     chipText: {
       fontSize: IS_TABLET ? 15 : 13,
-      fontWeight: '600',
+      fontFamily: InterFont.semiBold,
       color: C.text2,
     },
     chipTextActive: {

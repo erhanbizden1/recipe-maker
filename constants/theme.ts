@@ -27,6 +27,22 @@ export const Colors = {
   },
 };
 
+export const InterFont = {
+  regular: "Inter_400Regular",
+  medium: "Inter_500Medium",
+  semiBold: "Inter_600SemiBold",
+  bold: "Inter_700Bold",
+  extraBold: "Inter_800ExtraBold",
+};
+
+export const MontserratFont = {
+  regular: "Montserrat_400Regular",
+  medium: "Montserrat_500Medium",
+  semiBold: "Montserrat_600SemiBold",
+  bold: "Montserrat_700Bold",
+  extraBold: "Montserrat_800ExtraBold",
+};
+
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */

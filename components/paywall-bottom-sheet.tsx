@@ -1,5 +1,6 @@
 import { useLanguage } from "@/contexts/language";
 import { useUI } from "@/contexts/ui";
+import { InterFont } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -455,6 +456,10 @@ const PaywallContent = ({
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1.6 }}
         />
+        <LinearGradient
+          colors={["rgba(255,255,255,1)", "rgba(255,255,255,0)"]}
+          style={styles.topOverlay}
+        />
       </View>
 
       <LoadingOverlay
@@ -892,6 +897,13 @@ const styles = StyleSheet.create({
     top: 0,
     height: "100%",
   },
+  topOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 200,
+  },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(255,107,43,0.12)",
@@ -917,7 +929,7 @@ const styles = StyleSheet.create({
   loadingText: {
     color: "#1C1C1E",
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: InterFont.semiBold,
     marginTop: 16,
   },
   loadingTextTablet: { fontSize: 22, marginTop: 24 },
@@ -949,7 +961,7 @@ const styles = StyleSheet.create({
   headerTablet: { paddingHorizontal: 60, paddingBottom: 30 },
   title: {
     fontSize: 36,
-    fontWeight: "900",
+    fontFamily: InterFont.extraBold,
     color: "#FFFFFF",
     textAlign: "center",
     marginBottom: 8,
@@ -960,7 +972,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#FFFFFF",
     textAlign: "center",
-    fontWeight: "500",
+    fontFamily: InterFont.medium,
   },
   subtitleTablet: { fontSize: 32, paddingTop: 15 },
   featuresSection: {
@@ -994,7 +1006,7 @@ const styles = StyleSheet.create({
   },
   featureTitle: {
     fontSize: 18,
-    fontWeight: "700",
+    fontFamily: InterFont.bold,
     color: "#FFFFFF",
   },
   featureTitleTablet: { fontSize: 26 },
@@ -1039,7 +1051,7 @@ const styles = StyleSheet.create({
   packageLeft: { flex: 1, marginRight: 8 },
   packageTitle: {
     fontSize: 18,
-    fontWeight: "700",
+    fontFamily: InterFont.bold,
     color: "#1C1C1E",
     marginBottom: 8,
   },
@@ -1049,13 +1061,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexWrap: "wrap",
   },
-  packageDescription: { fontSize: 16, color: "#636366" },
-  packageDescriptionTop: { fontSize: 16, color: "#636366" },
+  packageDescription: { fontSize: 16, fontFamily: InterFont.regular, color: "#636366" },
+  packageDescriptionTop: { fontSize: 16, fontFamily: InterFont.regular, color: "#636366" },
   packageDescriptionTablet: { fontSize: 20 },
   packagePriceInline: {
     fontSize: 18,
     color: "#1C1C1E",
-    fontWeight: "700",
+    fontFamily: InterFont.bold,
     marginRight: 6,
   },
   packagePriceInlineTablet: { fontSize: 24, marginRight: 8 },
@@ -1079,7 +1091,7 @@ const styles = StyleSheet.create({
   savingTextInline: {
     color: "#ffffff",
     fontSize: 15,
-    fontWeight: "700",
+    fontFamily: InterFont.bold,
     letterSpacing: 0.3,
   },
   savingTextInlineTablet: { fontSize: 18, letterSpacing: 0.5 },
@@ -1152,7 +1164,7 @@ const styles = StyleSheet.create({
   ctaButtonText: {
     color: "#ffffff",
     fontSize: 24,
-    fontWeight: "800",
+    fontFamily: InterFont.extraBold,
     letterSpacing: 0.5,
   },
   ctaButtonTextTablet: { fontSize: 28, letterSpacing: 0.8 },
@@ -1164,9 +1176,9 @@ const styles = StyleSheet.create({
   legalLinkText: {
     fontSize: 12,
     color: "#AEAEB2",
-    fontWeight: "500",
+    fontFamily: InterFont.medium,
   },
-  legalLinkTextTablet: { fontSize: 16, fontWeight: "600" },
+  legalLinkTextTablet: { fontSize: 16, fontFamily: InterFont.semiBold },
   disabledLinkText: { opacity: 0.4 },
   linkSeparator: {
     width: 1,
@@ -1175,6 +1187,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   linkSeparatorTablet: { width: 2, height: 14, marginHorizontal: 16 },
-  priceText: { color: "#1C1C1E", fontSize: 18, fontWeight: "700" },
+  priceText: { color: "#1C1C1E", fontSize: 18, fontFamily: InterFont.bold },
   priceTextTablet: { fontSize: 20 },
 });

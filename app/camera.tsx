@@ -17,6 +17,7 @@ import PhotoStrip from '@/components/photo-strip';
 import { ColorScheme } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
 import { useTheme } from '@/contexts/theme';
+import { useUI } from '@/contexts/ui';
 import { CONTENT_MAX_W, IS_TABLET } from '@/lib/responsive';
 
 export default function CameraScreen() {
@@ -28,6 +29,7 @@ export default function CameraScreen() {
   const insets = useSafeAreaInsets();
   const { colors: C } = useTheme();
   const { t } = useLanguage();
+  const { isPremium, usageCount, freeLimit, openPaywall } = useUI();
   const styles = useMemo(() => createStyles(C), [C]);
 
   async function handleCapture() {
@@ -58,6 +60,11 @@ export default function CameraScreen() {
   // }
 
   function handleSubmit() {
+    if (!isPremium && usageCount >= freeLimit) {
+      router.back();
+      setTimeout(() => openPaywall(), 300);
+      return;
+    }
     router.replace({
       pathname: '/recipe-result',
       params: {

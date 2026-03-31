@@ -1,6 +1,13 @@
-import { useFocusEffect, useRouter } from 'expo-router';
-import { setStatusBarStyle } from 'expo-status-bar';
-import React, { useCallback, useMemo } from 'react';
+import { TAB_BAR_BASE_HEIGHT } from "@/components/custom-tab-bar";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { ColorScheme } from "@/constants/colors";
+import { InterFont } from "@/constants/theme";
+import { useLanguage } from "@/contexts/language";
+import { useTheme } from "@/contexts/theme";
+import { CONTENT_MAX_W, IS_TABLET } from "@/lib/responsive";
+import { useFocusEffect, useRouter } from "expo-router";
+import { setStatusBarStyle } from "expo-status-bar";
+import React, { useCallback, useMemo } from "react";
 import {
   Linking,
   Platform,
@@ -10,19 +17,19 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TAB_BAR_BASE_HEIGHT } from '@/components/custom-tab-bar';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { ColorScheme } from '@/constants/colors';
-import { useLanguage } from '@/contexts/language';
-import { useTheme } from '@/contexts/theme';
-import { CONTENT_MAX_W, IS_TABLET } from '@/lib/responsive';
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
-const APP_STORE_URL = 'https://apps.apple.com/app/idYOUR_APP_ID?action=write-review';
-const PLAY_STORE_URL = 'market://details?id=YOUR_PACKAGE_NAME';
-const PRIVACY_POLICY_URL = 'https://www.freeprivacypolicy.com/live/bff0afed-700a-4ff1-90b9-db06bc78b3ac';
-const TERMS_URL = 'https://www.termsfeed.com/live/ab19bd75-a435-45c7-a651-806570a0c99b';
+const APP_STORE_URL =
+  "https://apps.apple.com/app/idYOUR_APP_ID?action=write-review";
+const PLAY_STORE_URL = "market://details?id=YOUR_PACKAGE_NAME";
+const PRIVACY_POLICY_URL =
+  "https://www.freeprivacypolicy.com/live/bff0afed-700a-4ff1-90b9-db06bc78b3ac";
+const TERMS_URL =
+  "https://www.termsfeed.com/live/ab19bd75-a435-45c7-a651-806570a0c99b";
 
 function openURL(url: string) {
   Linking.openURL(url).catch(() => {});
@@ -32,9 +39,11 @@ export default function SettingsScreen() {
   const { colors: C, isDark } = useTheme();
   const router = useRouter();
 
-  useFocusEffect(useCallback(() => {
-    setStatusBarStyle('dark');
-  }, [isDark]));
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBarStyle("dark");
+    }, [isDark]),
+  );
 
   const { t } = useLanguage();
   const styles = useMemo(() => createStyles(C), [C]);
@@ -48,13 +57,11 @@ export default function SettingsScreen() {
   }
 
   function handleRate() {
-    openURL(Platform.OS === 'ios' ? APP_STORE_URL : PLAY_STORE_URL);
+    openURL(Platform.OS === "ios" ? APP_STORE_URL : PLAY_STORE_URL);
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={['top']}>
-
-
+    <SafeAreaView style={styles.root} edges={["top"]}>
       <View style={styles.headerWrap}>
         <View style={styles.header}>
           <Text style={styles.title}>{t.settings.title}</Text>
@@ -64,18 +71,21 @@ export default function SettingsScreen() {
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPad + 24 }]}>
-
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: bottomPad + 24 },
+        ]}
+      >
         {/* Preferences */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>{t.settings.preferences ?? 'Preferences'}</Text>
+          <Text style={styles.sectionLabel}>{t.settings.preferences}</Text>
           <View style={styles.card}>
             <Row
               icon="fork.knife"
               iconBg={C.accentLight}
               iconColor={C.accent}
-              label={t.settings.dietAndEquipment ?? 'Diet & Equipment'}
-              onPress={() => router.push('/preferences')}
+              label={t.settings.dietAndEquipment}
+              onPress={() => router.push("/preferences")}
               C={C}
             />
           </View>
@@ -128,7 +138,6 @@ export default function SettingsScreen() {
             />
           </View>
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );
@@ -150,9 +159,17 @@ function Row({
   C: ColorScheme;
 }) {
   return (
-    <TouchableOpacity style={rowStyles.row} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={rowStyles.row}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       <View style={[rowStyles.iconWrap, { backgroundColor: iconBg }]}>
-        <IconSymbol name={icon as any} size={IS_TABLET ? 18 : 16} color={iconColor} />
+        <IconSymbol
+          name={icon as any}
+          size={IS_TABLET ? 18 : 16}
+          color={iconColor}
+        />
       </View>
       <Text style={[rowStyles.label, { color: C.text }]}>{label}</Text>
       <IconSymbol name="chevron.right" size={14} color={C.text3} />
@@ -162,8 +179,8 @@ function Row({
 
 const rowStyles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 14,
     paddingVertical: IS_TABLET ? 16 : 13,
   },
@@ -171,13 +188,13 @@ const rowStyles = StyleSheet.create({
     width: IS_TABLET ? 42 : 34,
     height: IS_TABLET ? 42 : 34,
     borderRadius: IS_TABLET ? 13 : 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   label: {
     flex: 1,
     fontSize: IS_TABLET ? 18 : 16,
-    fontWeight: '600',
+    fontFamily: InterFont.semiBold,
   },
 });
 
@@ -191,8 +208,8 @@ function createStyles(C: ColorScheme) {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: C.border,
       maxWidth: CONTENT_MAX_W,
-      alignSelf: 'center',
-      width: '100%',
+      alignSelf: "center",
+      width: "100%",
     },
     header: {
       paddingHorizontal: IS_TABLET ? 24 : 20,
@@ -200,7 +217,7 @@ function createStyles(C: ColorScheme) {
     },
     title: {
       fontSize: IS_TABLET ? 32 : 28,
-      fontWeight: '800',
+      fontFamily: InterFont.bold,
       color: C.text,
       letterSpacing: -0.5,
     },
@@ -209,8 +226,8 @@ function createStyles(C: ColorScheme) {
     },
     scrollContent: {
       maxWidth: CONTENT_MAX_W,
-      alignSelf: 'center',
-      width: '100%',
+      alignSelf: "center",
+      width: "100%",
       paddingTop: 8,
     },
     section: {
@@ -219,10 +236,10 @@ function createStyles(C: ColorScheme) {
     },
     sectionLabel: {
       fontSize: IS_TABLET ? 12 : 11,
-      fontWeight: '700',
+      fontFamily: InterFont.bold,
       color: C.text3,
       letterSpacing: 1.1,
-      textTransform: 'uppercase',
+      textTransform: "uppercase",
       marginBottom: 8,
       marginLeft: 4,
     },
@@ -230,7 +247,7 @@ function createStyles(C: ColorScheme) {
       backgroundColor: C.surface,
       borderRadius: 18,
       paddingHorizontal: IS_TABLET ? 20 : 16,
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.06,
       shadowRadius: 8,

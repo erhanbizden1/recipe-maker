@@ -3,6 +3,21 @@ import RatingPrompt from "@/components/rating-prompt";
 import { LanguageProvider } from "@/contexts/language";
 import { ThemeProvider, useTheme } from "@/contexts/theme";
 import { UIProvider, useUI } from "@/contexts/ui";
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+  useFonts,
+} from "@expo-google-fonts/inter";
+import {
+  Montserrat_400Regular,
+  Montserrat_500Medium,
+  Montserrat_600SemiBold,
+  Montserrat_700Bold,
+  Montserrat_800ExtraBold,
+} from "@expo-google-fonts/montserrat";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   DarkTheme,
@@ -11,7 +26,7 @@ import {
 } from "@react-navigation/native";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { setStatusBarStyle } from "expo-status-bar";
+
 
 import { getDeviceId } from "@/lib/device-id";
 import { useEffect, useRef, useState } from "react";
@@ -37,7 +52,7 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-const ONBOARDING_KEY = "onboarding_complete_v2";
+const ONBOARDING_KEY = "onboarding_complete_v6";
 
 function RootStack() {
   const { isDark } = useTheme();
@@ -51,6 +66,7 @@ function RootStack() {
     openPaywall,
     ratingVisible,
     dismissRatingPrompt,
+    refreshUsage,
   } = useUI();
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(
     null,
@@ -62,10 +78,11 @@ function RootStack() {
     getDeviceId().then((id) => console.log("[Device ID]:", id));
   }, []);
 
-  // Fetch premium status on mount
+  // Fetch premium status and usage on mount
   useEffect(() => {
     refreshPremium();
-  }, [refreshPremium]);
+    refreshUsage();
+  }, [refreshPremium, refreshUsage]);
 
   // Check onboarding completion
   useEffect(() => {
@@ -79,8 +96,6 @@ function RootStack() {
     if (onboardingComplete === null) return;
     if (!onboardingComplete) {
       router.replace("/onboarding");
-    } else {
-      setStatusBarStyle("light");
     }
     SplashScreen.hideAsync();
   }, [onboardingComplete]);
@@ -104,6 +119,10 @@ function RootStack() {
         />
         <Stack.Screen
           name="onboarding-mood"
+          options={{ headerShown: false, gestureEnabled: false }}
+        />
+        <Stack.Screen
+          name="onboarding-loading"
           options={{ headerShown: false, gestureEnabled: false }}
         />
         <Stack.Screen
@@ -134,6 +153,21 @@ function RootStack() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
+    Montserrat_400Regular,
+    Montserrat_500Medium,
+    Montserrat_600SemiBold,
+    Montserrat_700Bold,
+    Montserrat_800ExtraBold,
+  });
+
+  if (!fontsLoaded) return null;
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>

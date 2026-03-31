@@ -3,6 +3,9 @@ import React, { createContext, useCallback, useContext, useRef, useState } from 
 import { Platform } from 'react-native';
 import Purchases from 'react-native-purchases';
 import type { PaywallBottomSheetRef } from '@/components/paywall-bottom-sheet';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { getDeviceId } from '@/lib/device-id';
 
 const RATING_DONE_KEY = 'rating_done';
 const RATING_SNOOZED_KEY = 'rating_snoozed';
@@ -20,6 +23,10 @@ interface UIContextType {
   isPremiumLoaded: boolean;
   setPremium: (val: boolean) => void;
   refreshPremium: () => Promise<void>;
+  freeLimit: number;
+  usageCount: number;
+  remainingUses: number;
+  refreshUsage: () => Promise<void>;
   ratingVisible: boolean;
   showRatingPrompt: () => Promise<void>;
   dismissRatingPrompt: (accepted: boolean) => void;
@@ -34,6 +41,10 @@ const UIContext = createContext<UIContextType>({
   isPremiumLoaded: false,
   setPremium: () => {},
   refreshPremium: async () => {},
+  freeLimit: 1,
+  usageCount: 0,
+  remainingUses: 1,
+  refreshUsage: async () => {},
   ratingVisible: false,
   showRatingPrompt: async () => {},
   dismissRatingPrompt: () => {},
@@ -45,6 +56,8 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
   const [isPremiumLoaded, setIsPremiumLoaded] = useState(false);
   const paywallRef = useRef<PaywallBottomSheetRef>(null);
   const [ratingVisible, setRatingVisible] = useState(false);
+  const [freeLimit, setFreeLimit] = useState(1);
+  const [usageCount, setUsageCount] = useState(0);
 
   const openPaywall = useCallback(() => {
     paywallRef.current?.snapToIndex(0);
@@ -85,6 +98,21 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const refreshUsage = useCallback(async () => {
+    try {
+      const configDoc = await getDoc(doc(db, 'config', 'limits'));
+      const remoteLimit = configDoc.exists() ? (configDoc.data().freeLimit ?? 1) : 1;
+      setFreeLimit(remoteLimit);
+
+      const deviceId = await getDeviceId();
+      const userDoc = await getDoc(doc(db, 'users', deviceId));
+      const count = userDoc.exists() ? (userDoc.data().usageCount ?? 0) : 0;
+      setUsageCount(count);
+    } catch {
+      // keep defaults
+    }
+  }, []);
+
   const refreshPremium = useCallback(async () => {
     if (Platform.OS !== 'ios') {
       setIsPremiumLoaded(true);
@@ -114,6 +142,10 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
         isPremiumLoaded,
         setPremium,
         refreshPremium,
+        freeLimit,
+        usageCount,
+        remainingUses: Math.max(0, freeLimit - usageCount),
+        refreshUsage,
         ratingVisible,
         showRatingPrompt,
         dismissRatingPrompt,
