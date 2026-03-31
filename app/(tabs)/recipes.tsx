@@ -1,5 +1,6 @@
 import { TAB_BAR_BASE_HEIGHT } from "@/components/custom-tab-bar";
 import { ColorScheme } from "@/constants/colors";
+import { InterFont } from "@/constants/theme";
 import { useLanguage } from "@/contexts/language";
 import { useTheme } from "@/contexts/theme";
 import { HistoryEntry, useRecipeHistory } from "@/hooks/use-recipe-history";
@@ -39,7 +40,7 @@ export default function RecipesScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      setStatusBarStyle('dark');
+      setStatusBarStyle("dark");
       refresh();
     }, []),
   );
@@ -69,17 +70,25 @@ export default function RecipesScreen() {
   useEffect(() => {
     if (!loading) return;
     Animated.loop(
-      Animated.timing(spinAnim, { toValue: 1, duration: 1000, useNativeDriver: true })
+      Animated.timing(spinAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
     ).start();
   }, [loading, spinAnim]);
-  const spin = spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
 
   if (loading) {
     return (
       <SafeAreaView style={[styles.emptyRoot, { paddingBottom: bottomPad }]}>
-
         <View style={styles.spinnerWrap}>
-          <Animated.View style={[styles.spinnerRing, { transform: [{ rotate: spin }] }]} />
+          <Animated.View
+            style={[styles.spinnerRing, { transform: [{ rotate: spin }] }]}
+          />
         </View>
       </SafeAreaView>
     );
@@ -88,7 +97,6 @@ export default function RecipesScreen() {
   if (history.length === 0) {
     return (
       <SafeAreaView style={[styles.emptyRoot, { paddingBottom: bottomPad }]}>
-
         <View style={styles.emptyIcon}>
           <Text style={{ fontSize: IS_TABLET ? 56 : 44 }}>🍽️</Text>
         </View>
@@ -157,47 +165,47 @@ function HistoryCard({
       activeOpacity={0.8}
     >
       <View style={styles.card}>
-      {item.thumbnailUri ? (
-        <Image source={{ uri: item.thumbnailUri }} style={styles.thumb} />
-      ) : (
-        <View style={[styles.thumb, styles.thumbPlaceholder]}>
-          <Text style={{ fontSize: IS_TABLET ? 52 : 42 }}>🥘</Text>
-        </View>
-      )}
-
-      <View style={styles.cardContent}>
-        <Text style={styles.recipeName} numberOfLines={1}>
-          {firstRecipe.name}
-        </Text>
-
-        {item.result.detectedIngredients.length > 0 && (
-          <Text style={styles.ingredientsList} numberOfLines={1}>
-            {item.result.detectedIngredients.slice(0, 5).join(" · ")}
-          </Text>
+        {item.thumbnailUri ? (
+          <Image source={{ uri: item.thumbnailUri }} style={styles.thumb} />
+        ) : (
+          <View style={[styles.thumb, styles.thumbPlaceholder]}>
+            <Text style={{ fontSize: IS_TABLET ? 52 : 42 }}>🥘</Text>
+          </View>
         )}
 
-        <View style={styles.cardBottom}>
-          {extraCount > 0 && (
-            <View style={styles.extraChip}>
-              <Text style={styles.extraChipText}>
-                {t.recipes.moreRecipes(extraCount)}
-              </Text>
-            </View>
-          )}
-          <View style={styles.cardMeta}>
-            <Text style={styles.time}>
-              {timeAgo(item.createdAt, t.recipes)}
+        <View style={styles.cardContent}>
+          <Text style={styles.recipeName} numberOfLines={1}>
+            {firstRecipe.name}
+          </Text>
+
+          {item.result.detectedIngredients.length > 0 && (
+            <Text style={styles.ingredientsList} numberOfLines={1}>
+              {item.result.detectedIngredients.slice(0, 5).join(" · ")}
             </Text>
-            <TouchableOpacity
-              onPress={() => onDelete(item.id)}
-              hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
-              style={styles.deleteBtn}
-            >
-              <Text style={styles.deleteIcon}>✕</Text>
-            </TouchableOpacity>
+          )}
+
+          <View style={styles.cardBottom}>
+            {extraCount > 0 && (
+              <View style={styles.extraChip}>
+                <Text style={styles.extraChipText}>
+                  {t.recipes.moreRecipes(extraCount)}
+                </Text>
+              </View>
+            )}
+            <View style={styles.cardMeta}>
+              <Text style={styles.time}>
+                {timeAgo(item.createdAt, t.recipes)}
+              </Text>
+              <TouchableOpacity
+                onPress={() => onDelete(item.id)}
+                hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                style={styles.deleteBtn}
+              >
+                <Text style={styles.deleteIcon}>✕</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
       </View>
     </TouchableOpacity>
   );
@@ -228,12 +236,14 @@ function createStyles(C: ColorScheme) {
     emptyTitle: {
       fontSize: IS_TABLET ? 32 : 26,
       fontWeight: "700",
+      fontFamily: InterFont.bold,
       color: C.text,
       marginBottom: 10,
       textAlign: "center",
     },
     emptySub: {
       fontSize: IS_TABLET ? 18 : 15,
+      fontFamily: InterFont.regular,
       color: C.text2,
       textAlign: "center",
       lineHeight: IS_TABLET ? 28 : 23,
@@ -253,6 +263,7 @@ function createStyles(C: ColorScheme) {
     emptyBtnText: {
       color: "#fff",
       fontWeight: "700",
+      fontFamily: InterFont.bold,
       fontSize: IS_TABLET ? 19 : 16,
     },
     header: {
@@ -270,6 +281,7 @@ function createStyles(C: ColorScheme) {
     headerTitle: {
       fontSize: IS_TABLET ? 32 : 28,
       fontWeight: "800",
+      fontFamily: InterFont.bold,
       color: C.text,
       letterSpacing: -0.5,
       flex: 1,
@@ -284,6 +296,7 @@ function createStyles(C: ColorScheme) {
       color: C.text2,
       fontSize: 14,
       fontWeight: "600",
+      fontFamily: InterFont.semiBold,
     },
     flatList: {
       maxWidth: CONTENT_MAX_W,
@@ -301,7 +314,7 @@ function createStyles(C: ColorScheme) {
     cardShadow: {
       borderRadius: 20,
       backgroundColor: C.surface,
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.14,
       shadowRadius: 12,
@@ -319,7 +332,7 @@ function createStyles(C: ColorScheme) {
       alignSelf: "stretch",
     },
     thumbPlaceholder: {
-      backgroundColor: '#E8E8EF',
+      backgroundColor: "#E8E8EF",
       alignItems: "center",
       justifyContent: "center",
     },
@@ -332,11 +345,13 @@ function createStyles(C: ColorScheme) {
     recipeName: {
       fontSize: IS_TABLET ? 19 : 15,
       fontWeight: "700",
+      fontFamily: InterFont.bold,
       color: C.text,
       letterSpacing: -0.2,
     },
     ingredientsList: {
       fontSize: IS_TABLET ? 14 : 12,
+      fontFamily: InterFont.regular,
       color: C.text3,
       lineHeight: IS_TABLET ? 22 : 18,
     },
@@ -354,6 +369,7 @@ function createStyles(C: ColorScheme) {
       color: C.accent,
       fontSize: 11,
       fontWeight: "700",
+      fontFamily: InterFont.bold,
     },
     cardMeta: {
       flexDirection: "row",
@@ -365,35 +381,37 @@ function createStyles(C: ColorScheme) {
       fontSize: IS_TABLET ? 13 : 11,
       color: C.text3,
       fontWeight: "500",
+      fontFamily: InterFont.medium,
     },
     deleteBtn: {
       width: 24,
       height: 24,
       borderRadius: 12,
-      backgroundColor: 'rgba(0,0,0,0.06)',
+      backgroundColor: "rgba(0,0,0,0.06)",
       alignItems: "center",
       justifyContent: "center",
     },
     deleteIcon: {
       fontSize: 10,
-      color: 'rgba(0,0,0,0.35)',
+      color: "rgba(0,0,0,0.35)",
       fontWeight: "800",
+      fontFamily: InterFont.extraBold,
     },
     spinnerWrap: {
       width: IS_TABLET ? 72 : 56,
       height: IS_TABLET ? 72 : 56,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
     },
     spinnerRing: {
-      position: 'absolute',
+      position: "absolute",
       width: IS_TABLET ? 72 : 56,
       height: IS_TABLET ? 72 : 56,
       borderRadius: IS_TABLET ? 36 : 28,
       borderWidth: 3,
       borderColor: C.border,
       borderTopColor: C.accent,
-      borderRightColor: C.accent + '60',
+      borderRightColor: C.accent + "60",
     },
   });
 }

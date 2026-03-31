@@ -7,7 +7,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { useCallback, useEffect, useState } from "react";
 import { Platform } from "react-native";
 
-const ONBOARDING_KEY = "onboarding_complete_v2";
+const ONBOARDING_KEY = "onboarding_complete_v6";
 export const SURVEY_PREFS_KEY = "survey_prefs";
 
 async function collectDeviceInfo(deviceId: string) {

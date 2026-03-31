@@ -1,6 +1,16 @@
-import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import React, { useMemo, useRef, useState } from 'react';
+import { ColorScheme } from "@/constants/colors";
+import { useLanguage } from "@/contexts/language";
+import { useTheme } from "@/contexts/theme";
+import {
+  CONTENT_MAX_W,
+  IS_TABLET,
+  ONBOARDING_IMG_SIZE,
+  SCREEN_W,
+} from "@/lib/responsive";
+import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import React, { useMemo, useRef, useState } from "react";
 import {
   FlatList,
   Image,
@@ -9,18 +19,14 @@ import {
   TouchableOpacity,
   View,
   ViewToken,
-} from 'react-native';
+} from "react-native";
 import Animated, {
   interpolate,
   SharedValue,
   useAnimatedStyle,
   useSharedValue,
-} from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ColorScheme } from '@/constants/colors';
-import { useLanguage } from '@/contexts/language';
-import { useTheme } from '@/contexts/theme';
-import { CONTENT_MAX_W, IS_TABLET, ONBOARDING_IMG_SIZE, SCREEN_W } from '@/lib/responsive';
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface OnboardingStep {
   id: string;
@@ -38,7 +44,11 @@ function StepSlide({ step, styles }: { step: OnboardingStep; styles: Styles }) {
     <View style={styles.slide}>
       <View style={styles.visualArea}>
         {step.image ? (
-          <Image source={step.image} style={styles.onboardingImage} resizeMode="contain" />
+          <Image
+            source={step.image}
+            style={styles.onboardingImage}
+            resizeMode="contain"
+          />
         ) : (
           <>
             <View style={styles.glowRing} />
@@ -68,8 +78,13 @@ function Dot({
       index * SCREEN_W,
       (index + 1) * SCREEN_W,
     ];
-    const width = interpolate(scrollX.value, inputRange, [8, 24, 8], 'clamp');
-    const opacity = interpolate(scrollX.value, inputRange, [0.3, 1, 0.3], 'clamp');
+    const width = interpolate(scrollX.value, inputRange, [8, 24, 8], "clamp");
+    const opacity = interpolate(
+      scrollX.value,
+      inputRange,
+      [0.3, 1, 0.3],
+      "clamp",
+    );
     return { width, opacity };
   });
 
@@ -88,9 +103,24 @@ export default function OnboardingScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const STEPS: OnboardingStep[] = [
-    { id: '1', image: require('@/assets/images/onboarding-1.png'), title: t.onboarding.step1Title, description: t.onboarding.step1Desc },
-    { id: '2', image: require('@/assets/images/onboardin-2.png'), title: t.onboarding.step2Title, description: t.onboarding.step2Desc },
-    { id: '3', image: require('@/assets/images/onboading-3.png'), title: t.onboarding.step3Title, description: t.onboarding.step3Desc },
+    {
+      id: "1",
+      image: require("@/assets/images/onboarding-1.png"),
+      title: t.onboarding.step1Title,
+      description: t.onboarding.step1Desc,
+    },
+    {
+      id: "2",
+      image: require("@/assets/images/onboardin-2.png"),
+      title: t.onboarding.step2Title,
+      description: t.onboarding.step2Desc,
+    },
+    {
+      id: "3",
+      image: require("@/assets/images/onboading-3.png"),
+      title: t.onboarding.step3Title,
+      description: t.onboarding.step3Desc,
+    },
   ];
 
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 });
@@ -99,15 +129,20 @@ export default function OnboardingScreen() {
       if (viewableItems[0]?.index != null) {
         setActiveIndex(viewableItems[0].index);
       }
-    }
+    },
   );
 
   function handleFinish() {
-    router.replace('/onboarding-mood');
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.replace("/onboarding-mood");
   }
 
   function handleNext() {
-    flatListRef.current?.scrollToIndex({ index: activeIndex + 1, animated: true });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    flatListRef.current?.scrollToIndex({
+      index: activeIndex + 1,
+      animated: true,
+    });
   }
 
   const isLast = activeIndex === STEPS.length - 1;
@@ -139,11 +174,19 @@ export default function OnboardingScreen() {
         </View>
 
         {isLast ? (
-          <TouchableOpacity style={styles.getStartedBtn} onPress={handleFinish} activeOpacity={0.85}>
-            <Text style={styles.getStartedText}>{t.onboarding.moodFinish}</Text>
+          <TouchableOpacity
+            style={styles.getStartedBtn}
+            onPress={handleFinish}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.getStartedText}>{t.onboarding.getStarted}</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.getStartedBtn} onPress={handleNext} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={styles.getStartedBtn}
+            onPress={handleNext}
+            activeOpacity={0.85}
+          >
             <Text style={styles.getStartedText}>{t.onboarding.continue}</Text>
           </TouchableOpacity>
         )}
@@ -163,15 +206,15 @@ function createStyles(C: ColorScheme) {
     slide: {
       width: SCREEN_W,
       flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       paddingHorizontal: IS_TABLET ? 60 : 36,
     },
     visualArea: {
       width: ONBOARDING_IMG_SIZE,
       height: ONBOARDING_IMG_SIZE,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       marginBottom: 4,
     },
     onboardingImage: {
@@ -179,7 +222,7 @@ function createStyles(C: ColorScheme) {
       height: ONBOARDING_IMG_SIZE,
     },
     glowRing: {
-      position: 'absolute',
+      position: "absolute",
       width: 200,
       height: 200,
       borderRadius: 100,
@@ -192,19 +235,21 @@ function createStyles(C: ColorScheme) {
     },
     title: {
       fontSize: IS_TABLET ? 48 : 28,
-      fontWeight: '800',
+      fontWeight: "700",
       color: C.text,
-      textAlign: 'center',
+      textAlign: "center",
       letterSpacing: -0.5,
+      fontFamily: "Inter_700Bold",
       marginBottom: 16,
       maxWidth: CONTENT_MAX_W,
     },
     description: {
       fontSize: IS_TABLET ? 26 : 16,
       color: C.text2,
-      textAlign: 'center',
+      textAlign: "center",
       lineHeight: IS_TABLET ? 40 : 24,
       maxWidth: CONTENT_MAX_W,
+      fontFamily: "Inter_400Regular",
     },
 
     // Bottom
@@ -212,13 +257,13 @@ function createStyles(C: ColorScheme) {
       paddingHorizontal: IS_TABLET ? 0 : 24,
       gap: 24,
       maxWidth: CONTENT_MAX_W,
-      alignSelf: 'center',
-      width: '100%',
+      alignSelf: "center",
+      width: "100%",
     },
     dots: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
       gap: 6,
     },
     dot: {
@@ -230,7 +275,7 @@ function createStyles(C: ColorScheme) {
       backgroundColor: C.accent,
       borderRadius: 18,
       paddingVertical: IS_TABLET ? 20 : 18,
-      alignItems: 'center',
+      alignItems: "center",
       shadowColor: C.accent,
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.45,
@@ -238,9 +283,10 @@ function createStyles(C: ColorScheme) {
     },
     getStartedText: {
       fontSize: IS_TABLET ? 22 : 20,
-      fontWeight: '700',
-      color: '#fff',
+      fontWeight: "700",
+      color: "#fff",
       letterSpacing: 0.1,
+      fontFamily: "Inter_700Bold",
     },
   });
 }

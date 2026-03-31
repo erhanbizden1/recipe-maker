@@ -1,7 +1,14 @@
-import { useRouter } from 'expo-router';
-import { setStatusBarStyle } from 'expo-status-bar';
-import React, { useEffect, useMemo, useState } from 'react';
+import { ColorScheme } from "@/constants/colors";
+import { InterFont } from "@/constants/theme";
+import { useLanguage } from "@/contexts/language";
+import { useTheme } from "@/contexts/theme";
+import { useUI } from "@/contexts/ui";
+import { CONTENT_MAX_W, IS_TABLET } from "@/lib/responsive";
+import { useRouter } from "expo-router";
+import { setStatusBarStyle } from "expo-status-bar";
+import React, { useEffect, useMemo, useState } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -10,52 +17,65 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ColorScheme } from '@/constants/colors';
-import { useLanguage } from '@/contexts/language';
-import { useTheme } from '@/contexts/theme';
-import { CONTENT_MAX_W, IS_TABLET } from '@/lib/responsive';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function IngredientsScreen() {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors: C } = useTheme();
   const { t } = useLanguage();
+  const { isPremium, usageCount, freeLimit, openPaywall } = useUI();
   const styles = useMemo(() => createStyles(C), [C]);
 
   useEffect(() => {
-    setStatusBarStyle('dark');
+    setStatusBarStyle("dark");
   }, []);
 
+  const [submitting, setSubmitting] = useState(false);
   const canSubmit = input.trim().length > 0;
 
   function addQuick(item: string) {
-    const word = item.replace(/^\S+\s/, '');
+    const word = item.replace(/^\S+\s/, "");
     setInput((prev) => (prev.trim() ? `${prev.trim()}, ${word}` : word));
   }
 
   function handleSubmit() {
+    if (submitting) return;
+    if (!isPremium && usageCount >= freeLimit) {
+      openPaywall();
+      return;
+    }
+    setSubmitting(true);
+    Keyboard.dismiss();
     router.push({
-      pathname: '/recipe-result',
-      params: { photos: JSON.stringify([]), text: input.trim(), thumbnail: '' },
+      pathname: "/recipe-result",
+      params: { photos: JSON.stringify([]), text: input.trim(), thumbnail: "" },
     });
   }
 
   return (
     <KeyboardAvoidingView
       style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + 12 },
+        ]}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
-
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header row */}
         <View style={styles.topRow}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
             <Text style={styles.backIcon}>‹</Text>
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
@@ -78,14 +98,19 @@ export default function IngredientsScreen() {
             selectionColor={C.accent}
           />
           {input.length > 0 && (
-            <TouchableOpacity style={styles.clearBtn} onPress={() => setInput('')}>
+            <TouchableOpacity
+              style={styles.clearBtn}
+              onPress={() => setInput("")}
+            >
               <Text style={styles.clearText}>✕</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {input.length > 0 && (
-          <Text style={styles.charCount}>{t.ingredients.characters(input.length)}</Text>
+          <Text style={styles.charCount}>
+            {t.ingredients.characters(input.length)}
+          </Text>
         )}
 
         {/* Quick add */}
@@ -96,7 +121,8 @@ export default function IngredientsScreen() {
               key={item}
               style={styles.quickChip}
               onPress={() => addQuick(item)}
-              activeOpacity={0.7}>
+              activeOpacity={0.7}
+            >
               <Text style={styles.quickText}>{item}</Text>
             </TouchableOpacity>
           ))}
@@ -105,20 +131,24 @@ export default function IngredientsScreen() {
         {/* Tip */}
         <View style={styles.tip}>
           <Text style={styles.tipIcon}>💡</Text>
-          <Text style={styles.tipText}>
-            {t.ingredients.tip}
-          </Text>
+          <Text style={styles.tipText}>{t.ingredients.tip}</Text>
         </View>
       </ScrollView>
 
       {/* Sticky CTA */}
-      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+      <View
+        style={[
+          styles.bottomBar,
+          { paddingBottom: Math.max(insets.bottom, 16) },
+        ]}
+      >
         <View style={styles.bottomBarInner}>
           <TouchableOpacity
-            style={[styles.cta, !canSubmit && styles.ctaDisabled]}
+            style={[styles.cta, (!canSubmit || submitting) && styles.ctaDisabled]}
             onPress={handleSubmit}
-            disabled={!canSubmit}
-            activeOpacity={0.85}>
+            disabled={!canSubmit || submitting}
+            activeOpacity={0.85}
+          >
             <Text style={styles.ctaText}>{t.ingredients.findRecipes}</Text>
           </TouchableOpacity>
         </View>
@@ -140,12 +170,12 @@ function createStyles(C: ColorScheme) {
       padding: IS_TABLET ? 28 : 20,
       paddingBottom: 48,
       maxWidth: CONTENT_MAX_W,
-      alignSelf: 'center',
-      width: '100%',
+      alignSelf: "center",
+      width: "100%",
     },
     topRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: 12,
       marginBottom: 28,
     },
@@ -154,29 +184,30 @@ function createStyles(C: ColorScheme) {
       height: IS_TABLET ? 48 : 38,
       borderRadius: IS_TABLET ? 24 : 19,
       backgroundColor: C.surface2,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
     },
     backIcon: {
       fontSize: IS_TABLET ? 30 : 24,
       color: C.text,
-      fontWeight: '300',
+      fontFamily: InterFont.regular,
       lineHeight: IS_TABLET ? 36 : 28,
       marginTop: -1,
     },
     heading: {
       fontSize: IS_TABLET ? 34 : 22,
-      fontWeight: '800',
+      fontFamily: InterFont.extraBold,
       color: C.text,
       letterSpacing: -0.4,
     },
     sub: {
       fontSize: IS_TABLET ? 16 : 13,
+      fontFamily: InterFont.regular,
       color: C.text2,
       marginTop: 1,
     },
     inputWrap: {
-      position: 'relative',
+      position: "relative",
       marginBottom: 6,
     },
     input: {
@@ -185,43 +216,45 @@ function createStyles(C: ColorScheme) {
       padding: IS_TABLET ? 22 : 18,
       paddingRight: 44,
       fontSize: IS_TABLET ? 19 : 16,
+      fontFamily: InterFont.regular,
       color: C.text,
       minHeight: IS_TABLET ? 220 : 160,
       lineHeight: IS_TABLET ? 30 : 24,
     },
     clearBtn: {
-      position: 'absolute',
+      position: "absolute",
       top: 14,
       right: 14,
       width: 26,
       height: 26,
       borderRadius: 13,
       backgroundColor: C.white,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
     },
     clearText: {
       color: C.text2,
       fontSize: 11,
-      fontWeight: '800',
+      fontFamily: InterFont.extraBold,
     },
     charCount: {
       fontSize: 11,
+      fontFamily: InterFont.regular,
       color: C.text3,
-      textAlign: 'right',
+      textAlign: "right",
       marginBottom: 20,
       marginRight: 4,
     },
     sectionLabel: {
       fontSize: 11,
-      fontWeight: '700',
+      fontFamily: InterFont.bold,
       color: C.text3,
       letterSpacing: 1.2,
       marginBottom: 10,
     },
     quickRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
+      flexDirection: "row",
+      flexWrap: "wrap",
       gap: 8,
       marginBottom: 24,
     },
@@ -234,21 +267,22 @@ function createStyles(C: ColorScheme) {
     quickText: {
       color: C.text2,
       fontSize: IS_TABLET ? 16 : 13,
-      fontWeight: '500',
+      fontFamily: InterFont.medium,
     },
     tip: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: 10,
       backgroundColor: C.surface2,
       borderRadius: 14,
       padding: 14,
       marginBottom: 24,
-      alignItems: 'flex-start',
+      alignItems: "flex-start",
     },
     tipIcon: { fontSize: 16, lineHeight: 22 },
     tipText: {
       flex: 1,
       fontSize: 13,
+      fontFamily: InterFont.regular,
       color: C.text2,
       lineHeight: 20,
     },
@@ -261,14 +295,14 @@ function createStyles(C: ColorScheme) {
     bottomBarInner: {
       paddingHorizontal: IS_TABLET ? 28 : 20,
       maxWidth: CONTENT_MAX_W,
-      alignSelf: 'center',
-      width: '100%',
+      alignSelf: "center",
+      width: "100%",
     },
     cta: {
       backgroundColor: C.accent,
       borderRadius: 18,
       paddingVertical: IS_TABLET ? 22 : 18,
-      alignItems: 'center',
+      alignItems: "center",
       shadowColor: C.accent,
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.4,
@@ -279,9 +313,9 @@ function createStyles(C: ColorScheme) {
       shadowOpacity: 0,
     },
     ctaText: {
-      color: '#fff',
+      color: "#fff",
       fontSize: IS_TABLET ? 20 : 17,
-      fontWeight: '700',
+      fontFamily: InterFont.bold,
       letterSpacing: 0.3,
     },
   });
