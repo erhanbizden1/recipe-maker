@@ -275,7 +275,7 @@ export default function RecipeResultScreen() {
             <View style={[styles.corner, styles.cornerBR]} />
           </View>
 
-          <Animated.Text style={[styles.loadingMsg, { opacity: msgFadeAnim }]}>
+          <Animated.Text style={[styles.loadingMsg, { opacity: msgFadeAnim, marginTop: 24 }]}>
             {LOADING_MESSAGES[loadingMsgIdx]}
           </Animated.Text>
           <Text style={styles.loadingHint}>
