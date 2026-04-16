@@ -185,6 +185,8 @@ export default function RecipeResultScreen() {
     try {
       const prefsRaw = await AsyncStorage.getItem("survey_prefs");
       const prefs = prefsRaw ? JSON.parse(prefsRaw) : {};
+      console.log("[RecipeResult] Claude API isteği başlıyor...", { language, diet: prefs.diet, equipment: prefs.equipment });
+      const t0 = Date.now();
       const analysisResult = await analyzeIngredients(
         imageUris,
         text || undefined,
@@ -193,6 +195,7 @@ export default function RecipeResultScreen() {
         prefs.diet,
         prefs.equipment,
       );
+      console.log("[RecipeResult] Claude yanıtı geldi", { sureMs: Date.now() - t0, tarifSayisi: analysisResult.recipes.length, malzemeSayisi: analysisResult.detectedIngredients.length });
       if (msgInterval.current) clearInterval(msgInterval.current);
       setResult(analysisResult);
       await addEntry({

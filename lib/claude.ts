@@ -136,6 +136,7 @@ export async function analyzeIngredients(
   }
 
   const data = await response.json();
+  console.log("[Claude] Token kullanımı:", { input: data.usage?.input_tokens, output: data.usage?.output_tokens, tahminiMaliyet: `$${(((data.usage?.input_tokens ?? 0) * 3 + (data.usage?.output_tokens ?? 0) * 15) / 1_000_000).toFixed(5)}` });
   const fullText: string = data.content?.[0]?.text ?? '';
 
   onChunk?.(fullText);
