@@ -6,9 +6,8 @@ import { useUI } from "@/contexts/ui";
 import { CONTENT_MAX_W, IS_TABLET } from "@/lib/responsive";
 import { useRouter } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -22,6 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function IngredientsScreen() {
   const [input, setInput] = useState("");
+  const inputRef = useRef<TextInput>(null);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors: C } = useTheme();
@@ -43,12 +43,12 @@ export default function IngredientsScreen() {
 
   function handleSubmit() {
     if (submitting) return;
+    inputRef.current?.blur();
     if (!isPremium && usageCount >= freeLimit) {
       openPaywall();
       return;
     }
     setSubmitting(true);
-    Keyboard.dismiss();
     router.push({
       pathname: "/recipe-result",
       params: { photos: JSON.stringify([]), text: input.trim(), thumbnail: "" },
@@ -87,6 +87,7 @@ export default function IngredientsScreen() {
         {/* Input */}
         <View style={styles.inputWrap}>
           <TextInput
+            ref={inputRef}
             style={styles.input}
             multiline
             autoFocus

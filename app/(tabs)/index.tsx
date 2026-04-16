@@ -78,8 +78,8 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity
             style={styles.proBtn}
-            activeOpacity={isPremium ? 1 : 0.8}
-            onPress={isPremium ? undefined : openPaywall}
+            activeOpacity={0.8}
+            onPress={openPaywall}
           >
             <View style={styles.proBtnInner}>
               {!isPremium && isPremiumLoaded && (
